@@ -1,13 +1,9 @@
 //! A simple 3D scene with light shining over a cube sitting on a plane.
 
-use std::path::PathBuf;
-
-use bevy::{prelude::*, window::PrimaryWindow, render::mesh::shape::Cube};
-use egui::{TextEdit, text::LayoutJob, TextFormat, ScrollArea};
+use bevy::prelude::*;
+use bevy_serialization_urdf::{plugin::UrdfSerializationPlugin, ui::{CachedUrdf, urdf_widgets_window}, loaders::urdf_loader::Urdf};
 use moonshine_save::save::Save;
-use bevy_egui::EguiContext;
-use bevy_rapier3d::{plugin::{RapierPhysicsPlugin, NoUserData}, render::RapierDebugRenderPlugin, dynamics::{ImpulseJoint, RigidBody, PrismaticJointBuilder, RapierImpulseJointHandle}, geometry::Collider};
-use bitvec::{prelude::*, view::BitView};
+use bevy_rapier3d::{plugin::{RapierPhysicsPlugin, NoUserData}, render::RapierDebugRenderPlugin};
 use bevy_camera_extras::plugins::DefaultCameraPlugin;
 
 use bevy_serialization_extras::prelude::*;
@@ -18,7 +14,7 @@ fn main() {
 
     App::new()
 
-    .insert_resource(SetSaveFile{name: "red".to_owned()})
+    .insert_resource(SetSaveFile{name: "blue".to_owned()})
     .insert_resource(UrdfHandles::default())
     .add_plugins(DefaultPlugins.set(WindowPlugin {exit_condition: bevy::window::ExitCondition::OnPrimaryClosed, ..Default::default()}))
         
@@ -35,7 +31,7 @@ fn main() {
         .add_plugins(WorldInspectorPlugin::new())
         .add_systems(Startup, queue_urdf_load_requests)
         .add_systems(Startup, setup)
-        .add_systems(Update, physics_widgets_window)
+        .add_systems(Update, urdf_widgets_window)
         .run();
 }
 
@@ -51,20 +47,14 @@ pub struct UrdfHandles {
 pub fn queue_urdf_load_requests(
     mut urdf_load_requests: ResMut<AssetSpawnRequestQueue<Urdf>>,
     mut cached_urdf: ResMut<CachedUrdf>,
-    mut asset_server: Res<AssetServer>,
+    asset_server: Res<AssetServer>,
 
 ) {
     let load_urdf_path = "urdf_tutorial/urdfs/tutorial_bot.xml";
     //let load_urdf_path = "urdf_tutorial/urdfs/issue_test.xml";
     //let load_urdf_path = "urdf_tutorial/urdfs/full_urdf_tutorial_bot.xml";
+    
     cached_urdf.urdf = asset_server.load(load_urdf_path);
-    // urdf_load_requests.requests.push_front(
-    //     AssetSpawnRequest {
-    //          source: "urdfs/example_bot.xml".to_owned().into(), 
-    //          position: Transform::from_xyz(0.0, 1.0, 0.0), 
-    //          ..Default::default()
-    //     }
-    // )
 
     urdf_load_requests.requests.push_front(
         AssetSpawnRequest {
@@ -73,20 +63,6 @@ pub fn queue_urdf_load_requests(
              ..Default::default()
         }
     );
-    // urdf_load_requests.requests.push_front(
-    //     AssetSpawnRequest {
-    //          source: "urdf_tutorial/urdfs/model_load_test.xml".to_owned().into(), 
-    //          position: Transform::from_xyz(0.0, 1.0, 0.0), 
-    //          ..Default::default()
-    //     }
-    // )
-    // urdf_load_requests.requests.push_front(
-    //     AssetSpawnRequest {
-    //          source: "urdf_tutorial/urdfs/full_urdf_tutorial_bot.xml".to_owned().into(), 
-    //          position: Transform::from_xyz(0.0, 1.0, 0.0), 
-    //          ..Default::default()
-    //     }
-    // );
     
 }
 
@@ -95,12 +71,8 @@ fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut cached_urdf: ResMut<CachedUrdf>
-    //mut urdfs: ResMut<Urdfs>
 ) {
-    // for (l, i) in materials.iter() {
 
-    // }
     // plane
     commands.spawn(
     (
@@ -113,21 +85,6 @@ fn setup(
         PhysicsBundle::default()
         )
     );
-    
-    // cube
-    // commands.spawn(
-    //     (
-    //         PbrBundle {
-    //             mesh: meshes.add(shape::Cube {size: 1.0}.into()),
-    //             material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
-    //             ..default()
-    //         },
-    //         PhysicsBundle {
-    //             rigid_body: RigidBody::Dynamic,
-    //             ..default()
-    //         }
-    //     )
-    // );
 
     // light
     commands.spawn(
