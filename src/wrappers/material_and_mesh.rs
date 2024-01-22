@@ -1,9 +1,11 @@
-use bevy::render::color::Color;
+use bevy::{prelude::default, render::color::Color};
 use bevy_serialization_extras::prelude::{material::MaterialFlag, AssetSource};
 use urdf_rs::Visual;
 use derive_more::From;
 use bevy_serialization_extras::prelude::{FileCheckPicker, mesh::{GeometryFlag, GeometryFile, MeshPrimitive}};
 use nalgebra::{Matrix3, Vector3};
+
+use bevy::prelude::Vec3;
 
 #[derive(From, Clone)]
 pub struct VisualWrapper(Visual);
@@ -33,11 +35,21 @@ impl From<&VisualWrapper> for FileCheckPicker<GeometryFlag, GeometryFile> {
     
     fn from(value: &VisualWrapper) -> Self {
         let visual = &value.0;
-        let urdf_rotation_flip = Matrix3::new(
-            0.0, -1.0, 0.0,
-            0.0, 0.0, 1.0,
-            1.0, 0.0, 0.0,
-        );
+        // let urdf_rotation_flipOLD = Matrix3::new(
+        //     0.0, 0.0, -1.0,
+        //     0.0, 1.0, 0.0,
+        //     1.0, 0.0, 0.0,
+        // );
+        let box_allign = [
+            Vec3::new(0.0, 0.0, -1.0),
+            Vec3::new(0.0, 1.0, 0.0),
+            Vec3::new(1.0, 0.0, 0.0),
+        ];
+        let cylinder_align = [
+            Vec3::new(-1.0, 0.0, 0.0),
+            Vec3::new(0.0, 0.0, 1.0),
+            Vec3::new(0.0, 1.0, 0.0),
+        ];
 
 
             let urdf_geometry = &visual.geometry;
@@ -53,7 +65,8 @@ impl From<&VisualWrapper> for FileCheckPicker<GeometryFlag, GeometryFile> {
                             primitive:  MeshPrimitive::Box {
                                 //size: (*size).map(|f| f as f32),
                                 size: [bevy_size[0] as f32, bevy_size[1] as f32, bevy_size[2] as f32]
-                            }
+                            },
+                            orientation_matrix: box_allign
                         }
                     
                     )
@@ -66,7 +79,8 @@ impl From<&VisualWrapper> for FileCheckPicker<GeometryFlag, GeometryFile> {
                             primitive: MeshPrimitive::Cylinder {
                                 radius: *radius as f32,
                                 length: *length as f32,
-                            }
+                            },
+                            orientation_matrix: cylinder_align
                         }
                     )
                 },
@@ -75,14 +89,18 @@ impl From<&VisualWrapper> for FileCheckPicker<GeometryFlag, GeometryFile> {
                         primitive: MeshPrimitive::Capsule {
                             radius: *radius as f32,
                             length: *length as f32,
-                        }
+                        },
+                        //FIXME:
+                        ..default()
                     }
                 ),
                 urdf_rs::Geometry::Sphere { radius } => FileCheckPicker::PureComponent(
                     GeometryFlag {
                         primitive: MeshPrimitive::Sphere {
                             radius: *radius as f32,
-                        }
+                        },
+                        ..default()
+                        
                     }
                 ),
                 urdf_rs::Geometry::Mesh { filename, .. } => {

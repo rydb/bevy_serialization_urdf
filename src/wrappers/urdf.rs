@@ -1,5 +1,5 @@
 
-use std::collections::HashMap;
+use std::{collections::HashMap, f32::consts::PI};
 
 // use bevy::core::Name;
 use bevy::{prelude::*, utils::thiserror, ecs::query::WorldQuery};
@@ -111,10 +111,15 @@ impl<'a> FromStructure for Urdf {
                 .insert(MaterialFlag::from(&visual_wrapper))
                 ;
             } 
+            let mut temp_rotate_for_demo = spawn_request.position;
+            //FIXME: urdf meshes have their verticies re-oriented to match bevy's cordinate system, but their rotation isn't rotated back
+            // to account for this, this will need a proper fix later.
+            temp_rotate_for_demo.rotate_x(-PI * 0.5);
+
             commands.entity(e)
             .insert(VisibilityBundle::default())
             .insert(TransformBundle {
-                local: spawn_request.position, 
+                local: temp_rotate_for_demo, 
                 ..default()
             })
             .insert(ColliderFlag::default())
@@ -123,8 +128,9 @@ impl<'a> FromStructure for Urdf {
                 filters: GroupWrapper::GROUP_2,
             })
             .insert(GeometryShiftMarked::default())
-            .insert(RigidBodyFlag::Dynamic)
+            .insert(RigidBodyFlag::Fixed)
             .insert(CcdFlag::default())
+            .insert(MatrixVisComponentTest::default())
             //.insert()
             ;
         }
@@ -144,8 +150,10 @@ impl<'a> FromStructure for Urdf {
     }
 }
 
-// impl Deserializer for Urdf {
-// }
+#[derive(Component, Reflect, Default)]
+pub struct MatrixVisComponentTest {
+    pub matrix: [Vec3; 3]
+}
 
 impl IntoHashMap<Query<'_, '_, LinkQuery>> for Urdf {
     fn into_hashmap(value: Query<'_, '_, LinkQuery>) -> HashMap<String, Self> {
@@ -171,7 +179,7 @@ impl IntoHashMap<Query<'_, '_, LinkQuery>> for Urdf {
                         Joint 
                         {
                             name: joint_name,
-                            //(TODO) implement this properly have this be a consequence of joint data via a function. This is a placeholder.
+                            //FIXME:  implement this properly have this be a consequence of joint data via a function. This is a placeholder.
                             joint_type: urdf_rs::JointType::Continuous,
                             origin: Pose {
                                 xyz: urdf_rs::Vec3([joint.local_frame1.translation.x.into(), joint.local_frame1.translation.y.into(), joint.local_frame1.translation.z.into()]),
@@ -194,16 +202,16 @@ impl IntoHashMap<Query<'_, '_, LinkQuery>> for Urdf {
                             limit: urdf_rs::JointLimit {
                                 lower: joint.limit.lower,
                                 upper: joint.limit.upper,
-                                //(TODO) implement this properly
+                                //FIXME: implement this properly
                                 effort: 99999999999.0,
-                                //(TODO) implement this properly
+                                //FIXME: implement this properly
                                 velocity: 999999999999.0
                             },
-                            //(TODO) implement this properly
+                            //FIXME: implement this properly
                             dynamics: None,
-                            //(TODO) implement this properly
+                            //FIXME: implement this properly
                             mimic: None,
-                            //(TODO) implement this properly
+                            //FIXME: implement this properly
                             safety_controller: None
                             
                     

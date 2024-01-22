@@ -50,6 +50,8 @@ pub fn queue_urdf_load_requests(
     asset_server: Res<AssetServer>,
 
 ) {
+    // set load_urdf_path to the urdf you want to load. 
+
     let load_urdf_path = "urdf_tutorial/urdfs/tutorial_bot.xml";
     //let load_urdf_path = "urdf_tutorial/urdfs/issue_test.xml";
     //let load_urdf_path = "urdf_tutorial/urdfs/full_urdf_tutorial_bot.xml";
