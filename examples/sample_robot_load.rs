@@ -6,7 +6,7 @@ use moonshine_save::save::Save;
 use bevy_rapier3d::{plugin::{RapierPhysicsPlugin, NoUserData}, render::RapierDebugRenderPlugin};
 use bevy_camera_extras::plugins::DefaultCameraPlugin;
 
-use bevy_serialization_extras::prelude::*;
+use bevy_serialization_extras::prelude::{link::{JointFlag, LinkFlag}, rigidbodies::RigidBodyFlag, *};
 
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
@@ -32,6 +32,7 @@ fn main() {
         .add_systems(Startup, queue_urdf_load_requests)
         .add_systems(Startup, setup)
         .add_systems(Update, urdf_widgets_window)
+        .add_systems(Update, pause_unpause_bodies)
         .run();
 }
 
@@ -42,6 +43,22 @@ fn main() {
 pub struct UrdfHandles {
     pub handle_vec: Vec<Handle<Urdf>>,
 
+}
+
+pub fn pause_unpause_bodies(
+    mut rigid_body_flag: Query<(&mut RigidBodyFlag), (Without<JointFlag>, With<LinkFlag>)>,
+    keys: Res<Input<KeyCode>>,
+) {
+    if keys.pressed(KeyCode::P) {
+        for mut rigidbody in rigid_body_flag.iter_mut() {
+            *rigidbody = RigidBodyFlag::Fixed;
+        }
+    }
+    if keys.pressed(KeyCode::O) {
+        for mut rigidbody in rigid_body_flag.iter_mut() {
+            *rigidbody = RigidBodyFlag::Dynamic;
+        }
+    }
 }
 
 pub fn queue_urdf_load_requests(

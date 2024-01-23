@@ -7,14 +7,13 @@
 use bevy::prelude::*;
 use bevy_serialization_extras::prelude::SerializeManyAsOneFor;
 
-use crate::{loaders::urdf_loader::{UrdfLoaderPlugin, Urdf}, ui::{UtilitySelection, CachedUrdf}, wrappers::{LinkQuery, MatrixVisComponentTest}};
+use crate::{loaders::urdf_loader::{UrdfLoaderPlugin, Urdf}, ui::{UtilitySelection, CachedUrdf}, wrappers::{LinkQuery}};
 
 pub struct UrdfSerializationPlugin;
 
 impl Plugin for UrdfSerializationPlugin {
     fn build(&self, app: &mut App) {
         app
-        .register_type::<MatrixVisComponentTest>()
         .add_plugins(UrdfLoaderPlugin)
 
         .insert_resource(UtilitySelection::default())

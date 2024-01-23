@@ -4,7 +4,7 @@ use std::{collections::HashMap, f32::consts::PI};
 // use bevy::core::Name;
 use bevy::{prelude::*, utils::thiserror, ecs::query::WorldQuery};
 //use bevy_rapier3d::geometry::Group;
-use bevy_serialization_extras::prelude::{*, link::{LinkFlag, StructureFlag, GeometryShiftMarked, JointFlag, JointAxesMaskWrapper, JointLimitWrapper, Dynamics}, mass::MassFlag, material::MaterialFlag, colliders::ColliderFlag, solvergroupfilter::{SolverGroupsFlag, GroupWrapper}, rigidbodies::RigidBodyFlag, continous_collision::CcdFlag, mesh::{GeometryFlag, GeometryFile}};
+use bevy_serialization_extras::prelude::{*, link::{Dynamics, GeometryShiftMarked, JointAxesMaskWrapper, JointFlag, JointLimitWrapper, JointMotorWrapper, LinkFlag, StructureFlag}, mass::MassFlag, material::MaterialFlag, colliders::ColliderFlag, solvergroupfilter::{SolverGroupsFlag, GroupWrapper}, rigidbodies::RigidBodyFlag, continous_collision::CcdFlag, mesh::{GeometryFlag, GeometryFile}};
 use nalgebra::{Matrix3, Vector3};
 use urdf_rs::{Robot, Joint, Pose, UrdfError, Link, Visual};
 
@@ -128,10 +128,8 @@ impl<'a> FromStructure for Urdf {
                 filters: GroupWrapper::GROUP_2,
             })
             .insert(GeometryShiftMarked::default())
-            .insert(RigidBodyFlag::Fixed)
+            .insert(RigidBodyFlag::Dynamic)
             .insert(CcdFlag::default())
-            .insert(MatrixVisComponentTest::default())
-            //.insert()
             ;
         }
 
@@ -150,10 +148,6 @@ impl<'a> FromStructure for Urdf {
     }
 }
 
-#[derive(Component, Reflect, Default)]
-pub struct MatrixVisComponentTest {
-    pub matrix: [Vec3; 3]
-}
 
 impl IntoHashMap<Query<'_, '_, LinkQuery>> for Urdf {
     fn into_hashmap(value: Query<'_, '_, LinkQuery>) -> HashMap<String, Self> {
@@ -281,11 +275,12 @@ impl From<&JointWrapper> for JointFlag {
     fn from(value: &JointWrapper) -> Self {
         let joint_offset = Transform::from(UrdfTransform::from(value.0.origin.clone()));
         Self {
-            offset: Transform {
-                 translation: Vec3::new(value.0.origin.xyz.0[0] as f32, value.0.origin.xyz.0[1] as f32, value.0.origin.xyz.0[2] as f32),
-                // rotation: Quat::default(),
-                ..default()
-            },
+            //local_frame1 does the same thing as this. removed. 
+            // offset: Transform {
+            //      translation: Vec3::new(value.0.origin.xyz.0[0] as f32, value.0.origin.xyz.0[1] as f32, value.0.origin.xyz.0[2] as f32),
+            //     // rotation: Quat::default(),
+            //     ..default()
+            // },
             parent_name: Some(value.0.parent.link.clone()),
             parent_id: None,
             limit: JointLimitWrapper {
@@ -322,7 +317,8 @@ impl From<&JointWrapper> for JointFlag {
             motor_axes: JointAxesMaskWrapper::empty(),
             coupled_axes: JointAxesMaskWrapper::empty(),
             contacts_enabled: true,
-            enabled: true
+            enabled: true,
+            ..default()
         }
     }
 }

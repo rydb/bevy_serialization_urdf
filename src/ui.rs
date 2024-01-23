@@ -17,7 +17,7 @@ use crate::loaders::urdf_loader::Urdf;
 
 #[derive(Default, EnumIter, Display)]
 pub enum UtilityType {
-    //Joints,
+    Joints,
     #[default]
     UrdfInfo,
 }
@@ -57,65 +57,65 @@ pub fn urdf_widgets_window(
             });
 
             match utility_selection.selected {
-                // UtilityType::Joints => {
-                //     for mut joint in joint_flags.iter_mut() {
+                UtilityType::Joints => {
+                    for mut joint in joint_flags.iter_mut() {
                 
 
-                //         ui.label("limit axis bits");
-                //         ui.horizontal(|ui| {
-                //             let mut limit_axis_bits = joint.limit_axes.bits().clone();
-                //             let limit_axis_bitvec = limit_axis_bits.view_bits_mut::<Msb0>();
+                        ui.label("limit axis bits");
+                        ui.horizontal(|ui| {
+                            let mut limit_axis_bits = joint.limit_axes.bits().clone();
+                            let limit_axis_bitvec = limit_axis_bits.view_bits_mut::<Msb0>();
         
-                //             for mut bit in limit_axis_bitvec.iter_mut(){
-                //                 //let mut bit_value = bit;
+                            for mut bit in limit_axis_bitvec.iter_mut(){
+                                //let mut bit_value = bit;
                                 
-                //                 ui.checkbox(&mut bit, "");
+                                ui.checkbox(&mut bit, "");
             
             
-                //             }
-                //             let new_joint_mask = JointAxesMaskWrapper::from_bits_truncate(limit_axis_bitvec.load_le());
-                //             // stops component from being registered as changed if nothing is happening to it
-                //             if joint.limit_axes != new_joint_mask {
-                //                 joint.limit_axes = new_joint_mask;
-                //             }        
-                //         });
+                            }
+                            let new_joint_mask = JointAxesMaskWrapper::from_bits_truncate(limit_axis_bitvec.load_le());
+                            // stops component from being registered as changed if nothing is happening to it
+                            if joint.limit_axes != new_joint_mask {
+                                joint.limit_axes = new_joint_mask;
+                            }        
+                        });
                         
-                //         ui.label("locked axis bits");
-                //         ui.horizontal(|ui| {
-                //             let mut locked_axis_bits = joint.locked_axes.bits().clone();
-                //             let limit_axis_bitvec = locked_axis_bits.view_bits_mut::<Msb0>();
+                        ui.label("locked axis bits");
+                        ui.horizontal(|ui| {
+                            let mut locked_axis_bits = joint.locked_axes.bits().clone();
+                            let limit_axis_bitvec = locked_axis_bits.view_bits_mut::<Msb0>();
         
-                //             for mut bit in limit_axis_bitvec.iter_mut(){
-                //                 //let mut bit_value = bit;
+                            for mut bit in limit_axis_bitvec.iter_mut(){
+                                //let mut bit_value = bit;
                                 
-                //                 ui.checkbox(&mut bit, "");
+                                ui.checkbox(&mut bit, "");
             
-                //             }
-                //             let new_joint_mask = JointAxesMaskWrapper::from_bits_truncate(limit_axis_bitvec.load_le());
+                            }
+                            let new_joint_mask = JointAxesMaskWrapper::from_bits_truncate(limit_axis_bitvec.load_le());
 
-                //             if joint.locked_axes != new_joint_mask {
-                //                 joint.locked_axes = new_joint_mask;
-                //             }       
-                //         });            
+                            if joint.locked_axes != new_joint_mask {
+                                joint.locked_axes = new_joint_mask;
+                            }       
+                        });            
                         
-                //     }
+                    }
 
-                    
-                //     for joint in rapier_joints.iter() {
+                                        
+                    // for joint in joint_flags.iter() {
 
-                //         ScrollArea::vertical().show(
-                //             ui, |ui| {
-                //                 let joint_as_string = format!("{:#?}", joint);
-                //                 let job = LayoutJob::single_section(
-                //                     joint_as_string,
-                //                     TextFormat::default()
-                //                 );
-                //                 ui.label(job);
-                //             }
-                //         );
+                    //     ScrollArea::vertical().show(
+                    //         ui, |ui| {
+                    //             let joint_as_string = format!("{:#?}", joint);
+                    //             let job = LayoutJob::single_section(
+                    //                 joint_as_string,
+                    //                 TextFormat::default()
+                    //             );
+                    //             ui.label(job);
+                    //         }
+                    //     );
         
-                //     }
-                // }
+                    // }
+                }
                 UtilityType::UrdfInfo => {
                     if let Some(urdf) = urdfs.get(cached_urdf.urdf.clone()) {
                         let urdf_as_string = format!("{:#?}", urdf.robot);
