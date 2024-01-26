@@ -9,7 +9,7 @@ use bevy_camera_extras::plugins::DefaultCameraPlugin;
 use bevy_serialization_extras::prelude::{link::{JointFlag, LinkFlag}, rigidbodies::RigidBodyFlag, *};
 
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-
+use bevy_mod_raycast::DefaultRaycastingPlugin;
 fn main() {
 
     App::new()
@@ -22,17 +22,30 @@ fn main() {
         .add_plugins(SerializationPlugin)
         .add_plugins(PhysicsSerializationPlugin)
         .add_plugins(UrdfSerializationPlugin)
+
         // rapier physics plugins
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(RapierDebugRenderPlugin::default())
+
+
+        .add_plugins(DefaultRaycastingPlugin)        
         
-        
-        .add_plugins(DefaultCameraPlugin)
+        // Quality of life for demo
         .add_plugins(WorldInspectorPlugin::new())
+        .add_plugins(DefaultCameraPlugin)
+        .init_resource::<SelectedMotorAxis>()
+        .init_resource::<PhysicsUtilitySelection>()
+
+
         .add_systems(Startup, queue_urdf_load_requests)
         .add_systems(Startup, setup)
         .add_systems(Update, urdf_widgets_window)
         .add_systems(Update, pause_unpause_bodies)
+        .add_systems(Update, selector_raycast)
+        .add_systems(Update, motor_controller_ui)
+        .add_systems(Update, make_robots_selectable)
+        .add_systems(Update, physics_utilities_ui)
+        .add_systems(Update, rapier_joint_info_ui)
         .run();
 }
 
@@ -43,6 +56,17 @@ fn main() {
 pub struct UrdfHandles {
     pub handle_vec: Vec<Handle<Urdf>>,
 
+}
+
+pub fn make_robots_selectable(
+    robots: Query<(Entity, &LinkFlag), Without<Selectable>>,
+    mut commands: Commands,
+) {
+    for (e ,link) in robots.iter() {
+        commands.entity(e)
+        .insert(Selectable)
+        ;
+    }
 }
 
 pub fn pause_unpause_bodies(

@@ -3,7 +3,7 @@ use bevy_egui::EguiContext;
 //use bevy_rapier3d::dynamics::ImpulseJoint;
 use bevy_serialization_extras::prelude::link::{JointFlag, JointAxesMaskWrapper};
 use bitvec::{view::BitView, order::Msb0, field::BitField};
-use egui::{RichText, Color32, ScrollArea, text::LayoutJob, TextFormat, Align2, InnerResponse, Ui};
+use egui::{epaint::Shadow, text::LayoutJob, Align2, Color32, Frame, InnerResponse, Margin, RichText, Rounding, ScrollArea, Stroke, TextFormat, Ui};
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, IntoStaticStr, Display};
 use std::collections::HashMap;
@@ -15,9 +15,36 @@ use egui_extras::{Column, TableBuilder};
 use crate::loaders::urdf_loader::Urdf;
 
 
+pub const DEBUG_FRAME_STYLE: Frame = Frame {
+    inner_margin: Margin {
+        left: 0.0,
+        right: 0.0,
+        top: 0.0,
+        bottom: 0.0,
+    },
+    outer_margin: Margin {
+        left: 0.0,
+        right: 0.0,
+        top: 0.0,
+        bottom: 0.0,
+    },
+    rounding: Rounding {
+        nw: 0.0,
+        ne: 0.0,
+        sw: 0.0,
+        se: 0.0,
+    },
+    shadow: Shadow::NONE,
+    fill: egui::Color32::from_rgba_premultiplied(15,15,15, 128),
+    stroke: Stroke {
+        width: 1.0,
+        color: Color32::BLACK
+    }
+};
+
+
 #[derive(Default, EnumIter, Display)]
 pub enum UtilityType {
-    Joints,
     #[default]
     UrdfInfo,
 }
@@ -46,6 +73,7 @@ pub fn urdf_widgets_window(
     for mut context in primary_window.iter_mut() { 
         egui::Window::new("debug widget window")
         //.title_bar(false)
+        .frame(DEBUG_FRAME_STYLE)
         .show(context.get_mut(), |ui|{
             // lay out the ui widget selection menu
             ui.horizontal(|ui| {
@@ -57,65 +85,6 @@ pub fn urdf_widgets_window(
             });
 
             match utility_selection.selected {
-                UtilityType::Joints => {
-                    for mut joint in joint_flags.iter_mut() {
-                
-
-                        ui.label("limit axis bits");
-                        ui.horizontal(|ui| {
-                            let mut limit_axis_bits = joint.limit_axes.bits().clone();
-                            let limit_axis_bitvec = limit_axis_bits.view_bits_mut::<Msb0>();
-        
-                            for mut bit in limit_axis_bitvec.iter_mut(){
-                                //let mut bit_value = bit;
-                                
-                                ui.checkbox(&mut bit, "");
-            
-            
-                            }
-                            let new_joint_mask = JointAxesMaskWrapper::from_bits_truncate(limit_axis_bitvec.load_le());
-                            // stops component from being registered as changed if nothing is happening to it
-                            if joint.limit_axes != new_joint_mask {
-                                joint.limit_axes = new_joint_mask;
-                            }        
-                        });
-                        
-                        ui.label("locked axis bits");
-                        ui.horizontal(|ui| {
-                            let mut locked_axis_bits = joint.locked_axes.bits().clone();
-                            let limit_axis_bitvec = locked_axis_bits.view_bits_mut::<Msb0>();
-        
-                            for mut bit in limit_axis_bitvec.iter_mut(){
-                                //let mut bit_value = bit;
-                                
-                                ui.checkbox(&mut bit, "");
-            
-                            }
-                            let new_joint_mask = JointAxesMaskWrapper::from_bits_truncate(limit_axis_bitvec.load_le());
-
-                            if joint.locked_axes != new_joint_mask {
-                                joint.locked_axes = new_joint_mask;
-                            }       
-                        });            
-                        
-                    }
-
-                                        
-                    // for joint in joint_flags.iter() {
-
-                    //     ScrollArea::vertical().show(
-                    //         ui, |ui| {
-                    //             let joint_as_string = format!("{:#?}", joint);
-                    //             let job = LayoutJob::single_section(
-                    //                 joint_as_string,
-                    //                 TextFormat::default()
-                    //             );
-                    //             ui.label(job);
-                    //         }
-                    //     );
-        
-                    // }
-                }
                 UtilityType::UrdfInfo => {
                     if let Some(urdf) = urdfs.get(cached_urdf.urdf.clone()) {
                         let urdf_as_string = format!("{:#?}", urdf.robot);
