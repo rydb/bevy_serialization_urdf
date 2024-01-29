@@ -197,9 +197,9 @@ impl IntoHashMap<Query<'_, '_, LinkQuery>> for Urdf {
                                 lower: joint.limit.lower,
                                 upper: joint.limit.upper,
                                 //FIXME: implement this properly
-                                effort: 99999999999.0,
+                                effort: f64::MAX,
                                 //FIXME: implement this properly
-                                velocity: 999999999999.0
+                                velocity: f64::MAX
                             },
                             //FIXME: implement this properly
                             dynamics: None,
@@ -271,9 +271,19 @@ impl From<UrdfTransform> for Transform {
 #[derive(From)]
 pub struct JointWrapper(Joint);
 
+//FIXME: get rid of defaults as needed
 impl From<&JointWrapper> for JointFlag {
     fn from(value: &JointWrapper) -> Self {
         let joint_offset = Transform::from(UrdfTransform::from(value.0.origin.clone()));
+        
+        let motor_settings = JointMotorWrapper {
+            max_force: f32::MAX,
+            //FIXME: I pulled this number from rapier joint damping. This should be generated based on something like air-resistance at some point to be
+            //accurate.
+            damping: 20.0,
+            ..default()  
+        };
+
         Self {
             //local_frame1 does the same thing as this. removed. 
             // offset: Transform {
@@ -284,8 +294,10 @@ impl From<&JointWrapper> for JointFlag {
             parent_name: Some(value.0.parent.link.clone()),
             parent_id: None,
             limit: JointLimitWrapper {
-                 lower:  value.0.limit.lower, 
-                 upper: value.0.limit.upper, 
+                //FIXME: Workaround for urdfs defaulting to un-movable joints
+                //https://github.com/openrr/urdf-rs/issues/99
+                 lower:  -999999999999999.0,//f64::MIN, //value.0.limit.lower, 
+                 upper: 999999999999999.0, //f64::MAX, //value.0.limit.upper, 
                  effort: value.0.limit.effort, 
                  velocity: value.0.limit.velocity
             },
@@ -311,14 +323,23 @@ impl From<&JointWrapper> for JointFlag {
                 // x = x | (2 << unit_axis[1]);
                 // x = x | (3 << unit_axis[2]);
                 // JointAxesMaskWrapper::from_bits_truncate(x)
-                JointAxesMaskWrapper::LOCKED_FIXED_AXES
+                
+                //FIXME: Replace with proper "axis-alignment" metod for converting from urdf -> bevy
+                JointAxesMaskWrapper::LOCKED_FIXED_AXES.difference(JointAxesMaskWrapper::ANG_Y)
             },
             limit_axes: JointAxesMaskWrapper::empty(),
-            motor_axes: JointAxesMaskWrapper::empty(),
+            motor_axes: JointAxesMaskWrapper::all(),
             coupled_axes: JointAxesMaskWrapper::empty(),
             contacts_enabled: true,
             enabled: true,
-            ..default()
+            motors: [
+                motor_settings.clone(), 
+                motor_settings.clone(), 
+                motor_settings.clone(), 
+                motor_settings.clone(), 
+                motor_settings.clone(), 
+                motor_settings.clone()
+            ]
         }
     }
 }
