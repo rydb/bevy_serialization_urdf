@@ -255,9 +255,9 @@ impl From<UrdfTransform> for Transform {
         let pos = value.0;
         
         let compliant_trans = 
-            /*urdf_cord_flip * */Vector3::new(pos.xyz.0[0], pos.xyz.0[1], pos.xyz.0[2]);
+            urdf_cord_flip * Vector3::new(pos.xyz.0[0], pos.xyz.0[1], pos.xyz.0[2]);
         let compliant_rot = 
-            /*urdf_rotation_flip * */Vector3::new(pos.rpy.0[0], pos.rpy.0[1], pos.rpy.0[2]);
+            urdf_rotation_flip * Vector3::new(pos.rpy.0[0], pos.rpy.0[1], pos.rpy.0[2]);
 
 
         Self {
@@ -274,8 +274,10 @@ pub struct JointWrapper(Joint);
 //FIXME: get rid of defaults as needed
 impl From<&JointWrapper> for JointFlag {
     fn from(value: &JointWrapper) -> Self {
-        let joint_offset = Transform::from(UrdfTransform::from(value.0.origin.clone()));
-        
+        //let joint_offset = Transform::from(UrdfTransform::from(value.0.origin.clone()));
+        //let axis = value.0.axis.xyz.0.clone();
+
+        //let new_axis = JointAxesMaskWrapper
         let motor_settings = JointMotorWrapper {
             max_force: f32::MAX,
             //FIXME: I pulled this number from rapier joint damping. This should be generated based on something like air-resistance at some point to be
@@ -285,12 +287,6 @@ impl From<&JointWrapper> for JointFlag {
         };
 
         Self {
-            //local_frame1 does the same thing as this. removed. 
-            // offset: Transform {
-            //      translation: Vec3::new(value.0.origin.xyz.0[0] as f32, value.0.origin.xyz.0[1] as f32, value.0.origin.xyz.0[2] as f32),
-            //     // rotation: Quat::default(),
-            //     ..default()
-            // },
             parent_name: Some(value.0.parent.link.clone()),
             parent_id: None,
             limit: JointLimitWrapper {
@@ -316,16 +312,26 @@ impl From<&JointWrapper> for JointFlag {
             local_frame2: None,
             locked_axes: {
                 //clamp axis to between 0-1 for simplicity and for bitmask flipping
-                // let unit_axis = value.0.axis.xyz.0
-                // .map(|n| n.clamp(0.0, 1.0))
-                // .map(|n| n as u8);
-                // let mut x = 1 << unit_axis[0];
-                // x = x | (2 << unit_axis[1]);
-                // x = x | (3 << unit_axis[2]);
-                // JointAxesMaskWrapper::from_bits_truncate(x)
+                let unit_axis = value.0.axis.xyz.0
+                .map(|n| n.abs().clamp(0.0, 1.0))
+                .map(|n| n as u8)
+                .map(|n| {
+                    if n == 1 {
+                        0
+                    } else {
+                        1
+                    }}
+                );
+
+                println!("unit axis is !!! {:#?}", unit_axis);
+                let mut x = JointAxesMaskWrapper::LOCKED_FIXED_AXES.bits();
+                x |= (unit_axis[0] << 3);
+                x |= (unit_axis[1] << 4);
+                x |= (unit_axis[2] << 5);
+                JointAxesMaskWrapper::from_bits(x).unwrap()
                 
                 //FIXME: Replace with proper "axis-alignment" metod for converting from urdf -> bevy
-                JointAxesMaskWrapper::LOCKED_FIXED_AXES.difference(JointAxesMaskWrapper::ANG_Y)
+                //JointAxesMaskWrapper::LOCKED_FIXED_AXES.difference(JointAxesMaskWrapper::ANG_Y)
             },
             limit_axes: JointAxesMaskWrapper::empty(),
             motor_axes: JointAxesMaskWrapper::all(),
