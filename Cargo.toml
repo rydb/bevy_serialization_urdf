@@ -2,11 +2,11 @@
 name = "bevy_serialization_urdf"
 version = "0.1.0"
 edition = "2021"
+repository = "https://github.com/rydb/bevy_serialization_extras"
+readme = "README.md"
+license = "MIT"
+description = "An addon for bevy_serialization_extras for loading urdfs"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-# [workspace]
-# members = ["../bevy_serialization_extras"]
 
 [dependencies]
 bevy_serialization_extras = {path = "../bevy_serialization_extras"}
@@ -19,8 +19,8 @@ egui = "0.24"
 egui_extras = "0.24"
 urdf-rs = "0.8.0"
 #multimap = "0.9.1"
-strum = "0.25"
-strum_macros = "0.25"
+strum = "0.26"
+strum_macros = "0.26"
 bitflags = "2.4.1"
 nalgebra = "0.32"
 yaserde = "0.9"

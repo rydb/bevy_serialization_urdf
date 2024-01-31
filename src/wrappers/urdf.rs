@@ -96,7 +96,7 @@ impl<'a> FromStructure for Urdf {
 
             commands.entity(e)
             .insert(Name::new(link.name.clone()))
-            .insert(LinkFlag::from(&link.clone().into()))
+            //.insert(LinkFlag::from(&link.clone().into()))
             .insert(StructureFlag { name: robot.name.clone() })
             .insert(MassFlag {mass: 1.0})
             //.insert(MassFlag { mass: link.inertial.mass.value as f32})

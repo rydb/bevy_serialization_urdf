@@ -2,7 +2,7 @@
 
 An addon for bevy_serialization_extras to enable urdf support
 
-[INSERT GIF HERE]
+![diff_bot](diff_bot.png)
 
 ## To use
 

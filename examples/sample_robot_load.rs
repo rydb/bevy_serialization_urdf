@@ -7,7 +7,7 @@ use moonshine_save::save::Save;
 use bevy_rapier3d::{dynamics::RigidBody, plugin::{RapierPhysicsPlugin, NoUserData}, render::RapierDebugRenderPlugin};
 use bevy_camera_extras::plugins::DefaultCameraPlugin;
 
-use bevy_serialization_extras::prelude::{friction::FrictionFlag, link::{JointAxesMaskWrapper, JointFlag, LinkFlag}, rigidbodies::RigidBodyFlag, *};
+use bevy_serialization_extras::prelude::{friction::FrictionFlag, link::{JointAxesMaskWrapper, JointFlag, LinkFlag, StructureFlag}, rigidbodies::RigidBodyFlag, *};
 
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_raycast::DefaultRaycastingPlugin;
@@ -54,31 +54,26 @@ fn main() {
         .run();
 }
 
-pub fn fixed_joint_friction_test(
-    mut robots: Query<(Entity, &JointFlag), (With<LinkFlag>, Without<FrictionFlag>)>,
-    mut commands: Commands,
+// pub fn fixed_joint_friction_test(
+//     mut robots: Query<(Entity, &JointFlag), (With<LinkFlag>, Without<FrictionFlag>)>,
+//     mut commands: Commands,
 
-) {
-    for (e, joint) in robots.iter() {
-            commands.entity(e)
-            .insert(FrictionFlag {
-                friction: 0.0, 
-                ..default()
-            });
-        // if joint.motor_axes.contains(JointAxesMaskWrapper::FREE_FIXED_AXES) {
-        //     println!("setting fixed joint to frictionless");
-
-        //     ;
-        // }
-    }
-}
+// ) {
+//     for (e, joint) in robots.iter() {
+//             commands.entity(e)
+//             .insert(FrictionFlag {
+//                 friction: 0.0, 
+//                 ..default()
+//             });
+//     }
+// }
 
 #[derive(Component)]
 pub struct WasFrozen;
 
 //FIXME: physics bodies fly out of control when spawned, this freezes them for the user to unpause until thats fixed. 
 pub fn freeze_spawned_robots(
-    mut robots: Query<(Entity, &mut RigidBodyFlag), (With<LinkFlag>, Without<JointFlag>, Without<WasFrozen>)>,
+    mut robots: Query<(Entity, &mut RigidBodyFlag), (With<StructureFlag>, Without<JointFlag>, Without<WasFrozen>)>,
     mut commands: Commands,
 ) {
     for (e, mut body) in robots.iter_mut() {
@@ -100,7 +95,7 @@ pub enum Wheel {
 
 /// find what is "probably" the left and right wheel, and give them a marker.
 pub fn bind_left_and_right_wheel(
-    mut robots: Query<(Entity, &Name), (With<JointFlag>, Without<Wheel>)>,
+    robots: Query<(Entity, &Name), (With<JointFlag>, Without<Wheel>)>,
     mut commands: Commands,
 ) {
     for (e, name) in robots.iter() {
@@ -134,10 +129,10 @@ pub struct UrdfHandles {
 }
 
 pub fn make_robots_selectable(
-    robots: Query<(Entity, &LinkFlag), Without<Selectable>>,
+    robots: Query<(Entity, &StructureFlag), Without<Selectable>>,
     mut commands: Commands,
 ) {
-    for (e ,link) in robots.iter() {
+    for (e ,..) in robots.iter() {
         commands.entity(e)
         .insert(Selectable)
         ;
@@ -145,7 +140,7 @@ pub fn make_robots_selectable(
 }
 
 pub fn control_robot(
-    mut rigid_body_flag: Query<(&mut RigidBodyFlag), (Without<JointFlag>, With<LinkFlag>)>,
+    mut rigid_body_flag: Query<(&mut RigidBodyFlag), (Without<JointFlag>, With<StructureFlag>)>,
     keys: Res<Input<KeyCode>>,
     mut primary_window: Query<&mut EguiContext, With<PrimaryWindow>>,
     mut wheels: Query<(&mut JointFlag, &Wheel)>
