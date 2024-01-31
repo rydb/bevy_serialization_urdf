@@ -57,7 +57,7 @@ pub struct CachedUrdf {
     pub urdf: Handle<Urdf>
 }
 
-pub fn urdf_widgets_window(
+pub fn urdf_widgets_ui(
     mut primary_window: Query<&mut EguiContext, With<PrimaryWindow>>,
     mut utility_selection: ResMut<UtilitySelection>,
     mut asset_server: Res<AssetServer>,

@@ -1,15 +1,17 @@
 //! A simple 3D scene with light shining over a cube sitting on a plane.
 
-use bevy::prelude::*;
-use bevy_serialization_urdf::{plugin::UrdfSerializationPlugin, ui::{CachedUrdf, urdf_widgets_window}, loaders::urdf_loader::Urdf};
+use bevy::{prelude::*, transform::commands, window::PrimaryWindow};
+use bevy_egui::EguiContext;
+use bevy_serialization_urdf::{plugin::UrdfSerializationPlugin, ui::{urdf_widgets_ui, CachedUrdf, DEBUG_FRAME_STYLE}, loaders::urdf_loader::Urdf};
 use moonshine_save::save::Save;
-use bevy_rapier3d::{plugin::{RapierPhysicsPlugin, NoUserData}, render::RapierDebugRenderPlugin};
+use bevy_rapier3d::{dynamics::RigidBody, plugin::{RapierPhysicsPlugin, NoUserData}, render::RapierDebugRenderPlugin};
 use bevy_camera_extras::plugins::DefaultCameraPlugin;
 
-use bevy_serialization_extras::prelude::{link::{JointFlag, LinkFlag}, rigidbodies::RigidBodyFlag, *};
+use bevy_serialization_extras::prelude::{friction::FrictionFlag, link::{JointAxesMaskWrapper, JointFlag, LinkFlag}, rigidbodies::RigidBodyFlag, *};
 
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_raycast::DefaultRaycastingPlugin;
+use strum_macros::Display;
 fn main() {
 
     App::new()
@@ -35,22 +37,95 @@ fn main() {
         .add_plugins(DefaultCameraPlugin)
         .init_resource::<SelectedMotorAxis>()
         .init_resource::<PhysicsUtilitySelection>()
-
-
-        .add_systems(Startup, queue_urdf_load_requests)
-        .add_systems(Startup, setup)
-        .add_systems(Update, urdf_widgets_window)
-        .add_systems(Update, pause_unpause_bodies)
         .add_systems(Update, selector_raycast)
-        .add_systems(Update, motor_controller_ui)
-        .add_systems(Update, make_robots_selectable)
         .add_systems(Update, physics_utilities_ui)
         .add_systems(Update, rapier_joint_info_ui)
+        .add_systems(Update, motor_controller_ui)
+        .add_systems(Update, urdf_widgets_ui)
+
+        // Demo systems
+        .register_type::<Wheel>()
+        .add_systems(Startup, setup)
+        .add_systems(Startup, queue_urdf_load_requests)
+        .add_systems(Update, control_robot)
+        .add_systems(Update, make_robots_selectable)
+        .add_systems(Update, bind_left_and_right_wheel)
+        .add_systems(Update, freeze_spawned_robots)
         .run();
 }
 
+pub fn fixed_joint_friction_test(
+    mut robots: Query<(Entity, &JointFlag), (With<LinkFlag>, Without<FrictionFlag>)>,
+    mut commands: Commands,
 
+) {
+    for (e, joint) in robots.iter() {
+            commands.entity(e)
+            .insert(FrictionFlag {
+                friction: 0.0, 
+                ..default()
+            });
+        // if joint.motor_axes.contains(JointAxesMaskWrapper::FREE_FIXED_AXES) {
+        //     println!("setting fixed joint to frictionless");
 
+        //     ;
+        // }
+    }
+}
+
+#[derive(Component)]
+pub struct WasFrozen;
+
+//FIXME: physics bodies fly out of control when spawned, this freezes them for the user to unpause until thats fixed. 
+pub fn freeze_spawned_robots(
+    mut robots: Query<(Entity, &mut RigidBodyFlag), (With<LinkFlag>, Without<JointFlag>, Without<WasFrozen>)>,
+    mut commands: Commands,
+) {
+    for (e, mut body) in robots.iter_mut() {
+        *body = RigidBodyFlag::Fixed;
+        commands.entity(e).insert(WasFrozen);
+    }
+}
+#[derive(Component, Reflect, Display)]
+pub enum Wheel {
+    Left,
+    Right,
+}
+
+// #[derive(Component)]
+// pub struct WheelLeft;
+
+// #[derive(Component)]
+// pub struct WheelRight;
+
+/// find what is "probably" the left and right wheel, and give them a marker.
+pub fn bind_left_and_right_wheel(
+    mut robots: Query<(Entity, &Name), (With<JointFlag>, Without<Wheel>)>,
+    mut commands: Commands,
+) {
+    for (e, name) in robots.iter() {
+        let name_str = name.to_string().to_lowercase();
+    
+        let split_up = name_str.split("_")
+        .collect::<Vec<&str>>()
+        ;
+
+        if split_up.contains(
+            &Wheel::Left
+            .to_string()
+            .to_lowercase()
+            .as_str()) {
+            commands.entity(e).insert(Wheel::Left);
+        }
+        if split_up.contains(
+            &Wheel::Right
+            .to_string()
+            .to_lowercase()
+            .as_str()) {
+            commands.entity(e).insert(Wheel::Right);
+        }
+    }
+}
 
 #[derive(Resource, Default)]
 pub struct UrdfHandles {
@@ -69,16 +144,83 @@ pub fn make_robots_selectable(
     }
 }
 
-pub fn pause_unpause_bodies(
+pub fn control_robot(
     mut rigid_body_flag: Query<(&mut RigidBodyFlag), (Without<JointFlag>, With<LinkFlag>)>,
     keys: Res<Input<KeyCode>>,
+    mut primary_window: Query<&mut EguiContext, With<PrimaryWindow>>,
+    mut wheels: Query<(&mut JointFlag, &Wheel)>
+
 ) {
-    if keys.pressed(KeyCode::P) {
+    let target_speed = 20.0;
+
+    let leftward_key = KeyCode::Left;
+    let rightward_key = KeyCode::Right;
+    let forward_key = KeyCode::Up;
+    let backward_key = KeyCode::Down;
+
+
+
+    let freeze_key = KeyCode::P;
+    let unfreeze_key = KeyCode::O;
+
+    for mut context in primary_window.iter_mut() {
+        egui::Window::new("robot controls")
+        .frame(DEBUG_FRAME_STYLE)
+        .show(context.get_mut(),|ui|{   
+            ui.label(format!("Freeze key: {:#?}", freeze_key));
+            ui.label(format!("unfreeze key {:#?}", unfreeze_key));
+            ui.label("-------------------------");
+            ui.label("");
+            ui.label("wheel controls")
+
+        })
+        ;
+    }
+    for (mut joint, wheel) in wheels.iter_mut() {
+        for axis in joint.motors.iter_mut() {
+            if keys.pressed(forward_key) {
+                axis.target_vel = target_speed
+            } 
+            else if keys.pressed(backward_key) {
+                axis.target_vel = -target_speed
+            }
+            else {
+                axis.target_vel = 0.0
+            }
+        }
+        match wheel {
+            
+            Wheel::Left => {
+                for axis in joint.motors.iter_mut() {
+                    if keys.pressed(leftward_key) {
+                        axis.target_vel = -target_speed
+                    }
+                    if keys.pressed(rightward_key) {
+                        axis.target_vel = target_speed
+                    }
+                }
+            }
+            Wheel::Right => {
+                for axis in joint.motors.iter_mut() {
+                    if keys.pressed(leftward_key) {
+                        axis.target_vel = target_speed
+                    }
+                    if keys.pressed(rightward_key) {
+                        axis.target_vel = -target_speed
+                    }
+                }
+            }
+            
+        }
+
+    }
+
+    if keys.pressed(freeze_key) {
         for mut rigidbody in rigid_body_flag.iter_mut() {
             *rigidbody = RigidBodyFlag::Fixed;
         }
     }
-    if keys.pressed(KeyCode::O) {
+    if keys.pressed(unfreeze_key) {
         for mut rigidbody in rigid_body_flag.iter_mut() {
             *rigidbody = RigidBodyFlag::Dynamic;
         }
@@ -103,7 +245,7 @@ pub fn queue_urdf_load_requests(
     urdf_load_requests.requests.push_front(
         AssetSpawnRequest {
              source: load_urdf_path.to_owned().into(), 
-             position: Transform::from_xyz(0.0, 1.0, 0.0), 
+             position: Transform::from_xyz(0.0, 2.0, 0.0), 
              ..Default::default()
         }
     );
@@ -121,7 +263,7 @@ fn setup(
     commands.spawn(
     (
         PbrBundle {
-            mesh: meshes.add(shape::Plane::from_size(5.0).into()),
+            mesh: meshes.add(shape::Plane::from_size(50.0).into()),
             material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
             transform: Transform::from_xyz(0.0, -1.0, 0.0),
             ..default()

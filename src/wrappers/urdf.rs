@@ -111,15 +111,15 @@ impl<'a> FromStructure for Urdf {
                 .insert(MaterialFlag::from(&visual_wrapper))
                 ;
             } 
-            let mut temp_rotate_for_demo = spawn_request.position;
+            //let mut temp_rotate_for_demo = spawn_request.position;
             //FIXME: urdf meshes have their verticies re-oriented to match bevy's cordinate system, but their rotation isn't rotated back
             // to account for this, this will need a proper fix later.
-            temp_rotate_for_demo.rotate_x(-PI * 0.5);
+            //temp_rotate_for_demo.rotate_x(-PI * 0.5);
 
             commands.entity(e)
             .insert(VisibilityBundle::default())
             .insert(TransformBundle {
-                local: temp_rotate_for_demo, 
+                //local: temp_rotate_for_demo, 
                 ..default()
             })
             .insert(ColliderFlag::default())
@@ -312,23 +312,23 @@ impl From<&JointWrapper> for JointFlag {
             local_frame2: None,
             locked_axes: {
                 //clamp axis to between 0-1 for simplicity and for bitmask flipping
-                let unit_axis = value.0.axis.xyz.0
-                .map(|n| n.abs().clamp(0.0, 1.0))
-                .map(|n| n as u8)
-                .map(|n| {
-                    if n == 1 {
-                        0
-                    } else {
-                        1
-                    }}
-                );
+                let default_locked_axes = JointAxesMaskWrapper::LOCKED_FIXED_AXES;
+                if value.0.joint_type != urdf_rs::JointType::Fixed {
+                    let unit_axis = value.0.axis.xyz.0
+                    .map(|n| n.abs().clamp(0.0, 1.0))
+                    .map(|n| n as u8)
+                    ;
+    
+                    println!("unit axis is !!! {:#?}", unit_axis);
+                    let mut x = default_locked_axes.bits();
+                    x ^= (unit_axis[0] << 3);
+                    x ^= (unit_axis[1] << 4);
+                    x ^= (unit_axis[2] << 5);
+                    JointAxesMaskWrapper::from_bits(x).unwrap()
+                } else {
+                    default_locked_axes
+                }
 
-                println!("unit axis is !!! {:#?}", unit_axis);
-                let mut x = JointAxesMaskWrapper::LOCKED_FIXED_AXES.bits();
-                x |= (unit_axis[0] << 3);
-                x |= (unit_axis[1] << 4);
-                x |= (unit_axis[2] << 5);
-                JointAxesMaskWrapper::from_bits(x).unwrap()
                 
                 //FIXME: Replace with proper "axis-alignment" metod for converting from urdf -> bevy
                 //JointAxesMaskWrapper::LOCKED_FIXED_AXES.difference(JointAxesMaskWrapper::ANG_Y)

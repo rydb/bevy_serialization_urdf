@@ -25,7 +25,7 @@
         </inertial>
         <visual>
             <geometry>
-                <mesh filename="package://model_pkg/models/left_wheel.obj"/>
+                <mesh filename="package://model_pkg/models/left_wheel_decimated.obj"/>
             </geometry>
         </visual>
     </link>
@@ -44,12 +44,12 @@
         </inertial>
         <visual>
             <geometry>
-                <mesh filename="package://model_pkg/models/right_wheel.obj"/>
+                <mesh filename="package://model_pkg/models/right_wheel_decimated.obj"/>
             </geometry>
         </visual>
     </link>
 
-    <joint name="caster_wheel_joint" type="fixed">
+    <!-- <joint name="caster_wheel_joint" type="fixed">
         <origin xyz="-0.3 -1.31 0.0"/>
         <parent link="base_link"/>
         <child link="caster_wheel_link"/>
@@ -63,9 +63,9 @@
         </inertial>
         <visual>
             <geometry>
-                <mesh filename="package://model_pkg/models/caster_wheel.obj"/>
+                <mesh filename="package://model_pkg/models/caster_wheel_decimated.obj"/>
             </geometry>
         </visual>
-    </link>
+    </link> -->
 
 </robot>
