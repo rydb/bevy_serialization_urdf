@@ -3,6 +3,7 @@
 use bevy::{prelude::*, transform::commands, window::PrimaryWindow};
 use bevy_egui::EguiContext;
 use bevy_serialization_urdf::{plugin::UrdfSerializationPlugin, ui::{urdf_widgets_ui, CachedUrdf, DEBUG_FRAME_STYLE}, loaders::urdf_loader::Urdf};
+use bevy_ui_extras::systems::visualize_right_sidepanel_for;
 use moonshine_save::save::Save;
 use bevy_rapier3d::{dynamics::RigidBody, plugin::{RapierPhysicsPlugin, NoUserData}, render::RapierDebugRenderPlugin};
 use bevy_camera_extras::plugins::DefaultCameraPlugin;
@@ -37,12 +38,14 @@ fn main() {
         .add_plugins(DefaultCameraPlugin)
         .init_resource::<SelectedMotorAxis>()
         .init_resource::<PhysicsUtilitySelection>()
+
+        // Ui
         .add_systems(Update, selector_raycast)
         .add_systems(Update, physics_utilities_ui)
         .add_systems(Update, rapier_joint_info_ui)
         .add_systems(Update, motor_controller_ui)
         .add_systems(Update, urdf_widgets_ui)
-
+        .add_systems(Update, visualize_right_sidepanel_for::<Name>)
         // Demo systems
         .register_type::<Wheel>()
         .add_systems(Startup, setup)

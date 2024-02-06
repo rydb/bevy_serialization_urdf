@@ -319,7 +319,7 @@ impl From<&JointWrapper> for JointFlag {
                     .map(|n| n as u8)
                     ;
     
-                    println!("unit axis is !!! {:#?}", unit_axis);
+                    //println!("unit axis is !!! {:#?}", unit_axis);
                     let mut x = default_locked_axes.bits();
                     x ^= (unit_axis[0] << 3);
                     x ^= (unit_axis[1] << 4);
