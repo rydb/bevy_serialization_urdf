@@ -104,14 +104,15 @@ impl From<&VisualWrapper> for FileCheckPicker<GeometryFlag, GeometryFile> {
                     }
                 ),
                 urdf_rs::Geometry::Mesh { filename, .. } => {
-                    let asset_source = AssetSource::Package(filename.clone());
+                    //let asset_source = AssetSource::Package(filename.clone());
 
-                    let asset_path = parse_urdf_source(asset_source);
+                    //let asset_path = parse_urdf_source(asset_source);
+                    println!("file name is {:#?}", filename);
                     FileCheckPicker::PathComponent(
                     //AssetSource::Package(filename.clone());
                     GeometryFile {
                         //source: AssetSource::Package(filename.clone()),
-                        source: asset_path
+                        source: filename.clone()
                     }
                 )
                 }
@@ -120,11 +121,11 @@ impl From<&VisualWrapper> for FileCheckPicker<GeometryFlag, GeometryFile> {
     }
 }
 
-fn parse_urdf_source(source: AssetSource) -> String {
+// fn parse_urdf_source(source: AssetSource) -> String {
 
-    match source {
-        AssetSource::Package(pkg) => pkg.strip_prefix("package://").unwrap().to_owned(),
-        AssetSource::Placeholder(..) => panic!("Asset source not implemented for this asset source.")
-    }
+//     match source {
+//         AssetSource::Package(pkg) => pkg.strip_prefix("package://").unwrap().to_owned(),
+//         AssetSource::Placeholder(..) => panic!("Asset source not implemented for this asset source.")
+//     }
 
-}
+// }

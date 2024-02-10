@@ -1,8 +1,8 @@
 //! A simple 3D scene with light shining over a cube sitting on a plane.
 
-use bevy::{prelude::*, transform::commands, window::PrimaryWindow};
+use bevy::{asset::io::file::FileAssetReader, prelude::*, transform::commands, window::PrimaryWindow};
 use bevy_egui::EguiContext;
-use bevy_serialization_urdf::{plugin::UrdfSerializationPlugin, ui::{urdf_widgets_ui, CachedUrdf, DEBUG_FRAME_STYLE}, loaders::urdf_loader::Urdf};
+use bevy_serialization_urdf::{loaders::urdf_loader::Urdf, plugin::{AssetSourcesUrdfPlugin, UrdfSerializationPlugin}, ui::{urdf_widgets_ui, CachedUrdf, DEBUG_FRAME_STYLE}};
 use bevy_ui_extras::systems::visualize_right_sidepanel_for;
 use moonshine_save::save::Save;
 use bevy_rapier3d::{dynamics::RigidBody, plugin::{RapierPhysicsPlugin, NoUserData}, render::RapierDebugRenderPlugin};
@@ -13,12 +13,19 @@ use bevy_serialization_extras::prelude::{friction::FrictionFlag, link::{JointAxe
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_raycast::DefaultRaycastingPlugin;
 use strum_macros::Display;
+use bevy::{asset::io::{AssetSource}, prelude::*};
+
+
 fn main() {
 
     App::new()
 
     .insert_resource(SetSaveFile{name: "blue".to_owned()})
     .insert_resource(UrdfHandles::default())
+    
+    // asset sources
+    .add_plugins(AssetSourcesUrdfPlugin)
+    
     .add_plugins(DefaultPlugins.set(WindowPlugin {exit_condition: bevy::window::ExitCondition::OnPrimaryClosed, ..Default::default()}))
         
         // serialization plugins

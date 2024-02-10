@@ -4,16 +4,35 @@
 /// In the meantime, use .obj!!!
 /// 
 //FIXME: Add .dae support
-use bevy::prelude::*;
+use bevy::{asset::io::{file::FileAssetReader, AssetSource}, prelude::*};
 use bevy_serialization_extras::prelude::SerializeManyAsOneFor;
 
 use crate::{loaders::urdf_loader::{UrdfLoaderPlugin, Urdf}, ui::{UtilitySelection, CachedUrdf}, wrappers::{LinkQuery}};
+
+const PACKAGE: &str = "package";
+
+/// asset sources for urdf. Needs to be loaded before [`DefaultPlugins`]
+pub struct AssetSourcesUrdfPlugin;
+
+impl Plugin for AssetSourcesUrdfPlugin {
+    fn build(&self, app: &mut App) {
+        app
+        .register_asset_source(
+            PACKAGE,
+    
+            AssetSource::build()
+                .with_reader(|| Box::new(FileAssetReader::new("../../assets")))
+        )
+        ;
+    }
+}
 
 pub struct UrdfSerializationPlugin;
 
 impl Plugin for UrdfSerializationPlugin {
     fn build(&self, app: &mut App) {
         app
+
         .add_plugins(UrdfLoaderPlugin)
 
         .insert_resource(UtilitySelection::default())
