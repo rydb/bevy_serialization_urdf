@@ -16,10 +16,7 @@ pub struct UrdfLoaderPlugin;
 
 impl Plugin for UrdfLoaderPlugin {
     fn build(&self, app: &mut App) {
-        app
-        .init_asset::<Urdf>()
-        .init_asset_loader::<UrdfLoader>()
-        ;
+        app.init_asset::<Urdf>().init_asset_loader::<UrdfLoader>();
     }
 }
 
@@ -34,7 +31,12 @@ pub struct Urdf {
 impl Default for Urdf {
     fn default() -> Self {
         Self {
-            robot: Robot {name: "DEFAULT_IN_CASE_OF_ERROR".to_owned(), links: Vec::new(), joints: Vec::new(), materials: Vec::new()}
+            robot: Robot {
+                name: "DEFAULT_IN_CASE_OF_ERROR".to_owned(),
+                links: Vec::new(),
+                joints: Vec::new(),
+                materials: Vec::new(),
+            },
         }
     }
 }
@@ -48,7 +50,6 @@ pub enum UrdfLoaderError {
     #[error("Failed to parse urdf")]
     ParsingError,
 }
-
 
 impl AssetLoader for UrdfLoader {
     type Asset = Urdf;
@@ -73,14 +74,12 @@ impl AssetLoader for UrdfLoader {
     }
 }
 
-pub fn load_urdf<'a> (
-    bytes: &'a [u8],
-) -> Result<Urdf, UrdfLoaderError>{
+pub fn load_urdf<'a>(bytes: &'a [u8]) -> Result<Urdf, UrdfLoaderError> {
     if let Some(res) = std::str::from_utf8(bytes)
         .ok()
         .and_then(|utf| urdf_rs::read_from_string(utf).ok())
     {
-        Ok(Urdf{robot: res})
+        Ok(Urdf { robot: res })
     } else {
         Err(UrdfLoaderError::ParsingError)
     }
@@ -99,7 +98,7 @@ pub fn load_urdf<'a> (
 //     }
 // }
 
-/// Weather this urdf is loaded or not. 
+/// Weather this urdf is loaded or not.
 #[derive(Clone, Eq, PartialEq, Debug, Hash, Default, States)]
 pub enum LoadState {
     #[default]

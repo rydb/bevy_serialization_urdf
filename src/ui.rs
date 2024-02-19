@@ -1,19 +1,26 @@
-use bevy::{prelude::*, window::PrimaryWindow, reflect::TypeInfo, ecs::schedule::{SystemConfig, SystemConfigs}};
+use bevy::{
+    ecs::schedule::{SystemConfig, SystemConfigs},
+    prelude::*,
+    reflect::TypeInfo,
+    window::PrimaryWindow,
+};
 use bevy_egui::EguiContext;
 //use bevy_rapier3d::dynamics::ImpulseJoint;
-use bevy_serialization_extras::prelude::link::{JointFlag, JointAxesMaskWrapper};
-use bitvec::{view::BitView, order::Msb0, field::BitField};
-use egui::{epaint::Shadow, text::LayoutJob, Align2, Color32, Frame, InnerResponse, Margin, RichText, Rounding, ScrollArea, Stroke, TextFormat, Ui};
-use strum::IntoEnumIterator;
-use strum_macros::{EnumIter, IntoStaticStr, Display};
-use std::collections::HashMap;
+use bevy_serialization_extras::prelude::link::{JointAxesMaskWrapper, JointFlag};
+use bitvec::{field::BitField, order::Msb0, view::BitView};
+use egui::{
+    epaint::Shadow, text::LayoutJob, Align2, Color32, Frame, InnerResponse, Margin, RichText,
+    Rounding, ScrollArea, Stroke, TextFormat, Ui,
+};
 use moonshine_save::prelude::Save;
 use std::any::TypeId;
+use std::collections::HashMap;
+use strum::IntoEnumIterator;
+use strum_macros::{Display, EnumIter, IntoStaticStr};
 
 use egui_extras::{Column, TableBuilder};
 
 use crate::loaders::urdf_loader::Urdf;
-
 
 pub const DEBUG_FRAME_STYLE: Frame = Frame {
     inner_margin: Margin {
@@ -35,13 +42,12 @@ pub const DEBUG_FRAME_STYLE: Frame = Frame {
         se: 0.0,
     },
     shadow: Shadow::NONE,
-    fill: egui::Color32::from_rgba_premultiplied(15,15,15, 128),
+    fill: egui::Color32::from_rgba_premultiplied(15, 15, 15, 128),
     stroke: Stroke {
         width: 1.0,
-        color: Color32::BLACK
-    }
+        color: Color32::BLACK,
+    },
 };
-
 
 #[derive(Default, EnumIter, Display)]
 pub enum UtilityType {
@@ -50,11 +56,11 @@ pub enum UtilityType {
 }
 #[derive(Resource, Default)]
 pub struct UtilitySelection {
-    pub selected: UtilityType
+    pub selected: UtilityType,
 }
 #[derive(Resource, Default)]
 pub struct CachedUrdf {
-    pub urdf: Handle<Urdf>
+    pub urdf: Handle<Urdf>,
 }
 
 pub fn urdf_widgets_ui(
@@ -64,49 +70,41 @@ pub fn urdf_widgets_ui(
     mut cached_urdf: Res<CachedUrdf>,
     mut urdfs: Res<Assets<Urdf>>,
 
-
     mut joint_flags: Query<&mut JointFlag>,
-
     //rapier_joints: Query<&ImpulseJoint>,
-
 ) {
-    for mut context in primary_window.iter_mut() { 
+    for mut context in primary_window.iter_mut() {
         egui::Window::new("debug widget window")
-        //.title_bar(false)
-        .frame(DEBUG_FRAME_STYLE)
-        .show(context.get_mut(), |ui|{
-            // lay out the ui widget selection menu
-            ui.horizontal(|ui| {
-                for utility in UtilityType::iter() {
-                    if ui.button(utility.to_string()).clicked() {
-                        utility_selection.selected = utility;
+            //.title_bar(false)
+            .frame(DEBUG_FRAME_STYLE)
+            .show(context.get_mut(), |ui| {
+                // lay out the ui widget selection menu
+                ui.horizontal(|ui| {
+                    for utility in UtilityType::iter() {
+                        if ui.button(utility.to_string()).clicked() {
+                            utility_selection.selected = utility;
+                        }
+                    }
+                });
+
+                match utility_selection.selected {
+                    UtilityType::UrdfInfo => {
+                        if let Some(urdf) = urdfs.get(cached_urdf.urdf.clone()) {
+                            let urdf_as_string = format!("{:#?}", urdf.robot);
+
+                            if ui.button("Copy to clipboard").clicked() {
+                                ui.output_mut(|o| o.copied_text = urdf_as_string.to_string());
+                            }
+                            ScrollArea::vertical().show(ui, |ui| {
+                                let job = LayoutJob::single_section(
+                                    urdf_as_string,
+                                    TextFormat::default(),
+                                );
+                                ui.label(job);
+                            });
+                        }
                     }
                 }
             });
-
-            match utility_selection.selected {
-                UtilityType::UrdfInfo => {
-                    if let Some(urdf) = urdfs.get(cached_urdf.urdf.clone()) {
-                        let urdf_as_string = format!("{:#?}", urdf.robot);
-                        
-                        if ui.button("Copy to clipboard").clicked() {
-                            ui.output_mut(|o| o.copied_text = urdf_as_string.to_string());
-                        }
-                        ScrollArea::vertical().show(
-                            ui, |ui| {
-
-                                let job = LayoutJob::single_section(
-                                    urdf_as_string,
-                                    TextFormat::default()
-                                );
-                                ui.label(job);
-                            }
-                        );
-                    }                    
-                }
-            }
-        })
-
-        ;
     }
 }
