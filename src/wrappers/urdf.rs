@@ -1,7 +1,7 @@
-use std::{collections::HashMap, f32::consts::PI};
+use std::collections::HashMap;
 
 // use bevy::core::Name;
-use bevy::{ecs::query::WorldQuery, prelude::*, utils::thiserror};
+use bevy::{ecs::query::QueryData, prelude::*};
 //use bevy_rapier3d::geometry::Group;
 use bevy_serialization_extras::prelude::{
     colliders::ColliderFlag,
@@ -18,21 +18,20 @@ use bevy_serialization_extras::prelude::{
     *,
 };
 use nalgebra::{Matrix3, Vector3};
-use urdf_rs::{Joint, Link, Pose, Robot, UrdfError, Visual};
+use urdf_rs::{Joint, Link, Pose, Robot, Visual};
 
 use derive_more::From;
 
 //use crate::{queries::FileCheckPicker, resources::AssetSpawnRequest, loaders::urdf_loader::Urdf, traits::{LazyDeserialize, LoadError}, wrappers::link::LinkFlag};
 
 //use super::{material::MaterialFlag, link::{JointFlag, LinkQuery, JointAxesMaskWrapper, StructureFlag}, mass::MassFlag, colliders::ColliderFlag, rigidbodies::RigidBodyFlag, continous_collision::CcdFlag, solvergroupfilter::SolverGroupsFlag, collisiongroupfilter::CollisionGroupsFlag};
-use bevy::render::mesh::VertexAttributeValues::Float32x3;
 
 use crate::loaders::urdf_loader::Urdf;
 
 use super::material_and_mesh::VisualWrapper;
 
 /// the collection of things that qualify as a "link", in the ROS 2 context.
-#[derive(WorldQuery)]
+#[derive(QueryData)]
 pub struct LinkQuery {
     pub name: Option<&'static Name>,
     pub structure: &'static StructureFlag,
@@ -49,13 +48,13 @@ impl LazyDeserialize for Urdf {
     }
 }
 
-pub struct UrdfLinkage<'a, 'b> {
-    link: &'a Link,
-    joint: Option<&'b Joint>,
-}
+// pub struct UrdfLinkage<'a, 'b> {
+//     link: &'a Link,
+//     joint: Option<&'b Joint>,
+// }
 
 impl<'a> FromStructure for Urdf {
-    fn into_entities(commands: &mut Commands, value: Self, spawn_request: AssetSpawnRequest<Self>) {
+    fn into_entities(commands: &mut Commands, value: Self, _: AssetSpawnRequest<Self>) {
         //let name = request.item.clone();
         //let robot = value.world_urdfs.get(&request.item).unwrap();
         //log::info!("urdf is {:#?}", value.clone());
@@ -95,7 +94,7 @@ impl<'a> FromStructure for Urdf {
         // ).collect::<Vec<Self>>();
         let mut structured_entities_map: HashMap<String, Entity> = HashMap::new();
 
-        for (key, link) in structured_link_map.iter() {
+        for (_, link) in structured_link_map.iter() {
             let e = *structured_entities_map
                 .entry(link.name.clone())
                 .or_insert(commands.spawn_empty().id());
@@ -139,7 +138,7 @@ impl<'a> FromStructure for Urdf {
                 .insert(CcdFlag::default());
         }
 
-        for (key, joint) in structured_joint_map.iter() {
+        for (_, joint) in structured_joint_map.iter() {
             let e = *structured_entities_map
                 .entry(joint.child.link.clone())
                 .or_insert(commands.spawn_empty().id());
@@ -343,9 +342,9 @@ impl From<&JointWrapper> for JointFlag {
 
                     //println!("unit axis is !!! {:#?}", unit_axis);
                     let mut x = default_locked_axes.bits();
-                    x ^= (unit_axis[0] << 3);
-                    x ^= (unit_axis[1] << 4);
-                    x ^= (unit_axis[2] << 5);
+                    x ^= unit_axis[0] << 3;
+                    x ^= unit_axis[1] << 4;
+                    x ^= unit_axis[2] << 5;
                     JointAxesMaskWrapper::from_bits(x).unwrap()
                 } else {
                     default_locked_axes

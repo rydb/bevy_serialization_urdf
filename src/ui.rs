@@ -1,24 +1,16 @@
 use bevy::{
-    ecs::schedule::{SystemConfig, SystemConfigs},
     prelude::*,
-    reflect::TypeInfo,
     window::PrimaryWindow,
 };
 use bevy_egui::EguiContext;
 //use bevy_rapier3d::dynamics::ImpulseJoint;
-use bevy_serialization_extras::prelude::link::{JointAxesMaskWrapper, JointFlag};
-use bitvec::{field::BitField, order::Msb0, view::BitView};
 use egui::{
-    epaint::Shadow, text::LayoutJob, Align2, Color32, Frame, InnerResponse, Margin, RichText,
-    Rounding, ScrollArea, Stroke, TextFormat, Ui,
+    epaint::Shadow, text::LayoutJob, Color32, Frame, Margin,
+    Rounding, ScrollArea, Stroke, TextFormat, 
 };
-use moonshine_save::prelude::Save;
-use std::any::TypeId;
-use std::collections::HashMap;
 use strum::IntoEnumIterator;
-use strum_macros::{Display, EnumIter, IntoStaticStr};
+use strum_macros::{Display, EnumIter};
 
-use egui_extras::{Column, TableBuilder};
 
 use crate::loaders::urdf_loader::Urdf;
 
@@ -66,11 +58,11 @@ pub struct CachedUrdf {
 pub fn urdf_widgets_ui(
     mut primary_window: Query<&mut EguiContext, With<PrimaryWindow>>,
     mut utility_selection: ResMut<UtilitySelection>,
-    mut asset_server: Res<AssetServer>,
-    mut cached_urdf: Res<CachedUrdf>,
-    mut urdfs: Res<Assets<Urdf>>,
+    //mut asset_server: Res<AssetServer>,
+    cached_urdf: Res<CachedUrdf>,
+    urdfs: Res<Assets<Urdf>>,
 
-    mut joint_flags: Query<&mut JointFlag>,
+    //mut joint_flags: Query<&mut JointFlag>,
     //rapier_joints: Query<&ImpulseJoint>,
 ) {
     for mut context in primary_window.iter_mut() {

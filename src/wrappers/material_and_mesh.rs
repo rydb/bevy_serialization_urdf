@@ -1,11 +1,11 @@
 use bevy::{prelude::default, render::color::Color};
-use bevy_serialization_extras::prelude::{material::MaterialFlag, AssetSource};
+use bevy_serialization_extras::prelude::material::MaterialFlag;
 use bevy_serialization_extras::prelude::{
     mesh::{GeometryFile, GeometryFlag, MeshPrimitive},
     FileCheckPicker,
 };
 use derive_more::From;
-use nalgebra::{Matrix3, Vector3};
+use nalgebra::Vector3;
 use urdf_rs::Visual;
 
 use bevy::prelude::Vec3;
@@ -60,7 +60,7 @@ impl From<&VisualWrapper> for FileCheckPicker<GeometryFlag, GeometryFile> {
             urdf_rs::Geometry::Box { size } => {
                 let bevy_size = /*urdf_rotation_flip * */ Vector3::new(size[0], size[1], size[2]);
                 FileCheckPicker::PureComponent(GeometryFlag {
-                    primitive: MeshPrimitive::Box {
+                    primitive: MeshPrimitive::Cuboid {
                         //size: (*size).map(|f| f as f32),
                         size: [
                             bevy_size[0] as f32,

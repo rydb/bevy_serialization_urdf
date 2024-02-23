@@ -1,12 +1,11 @@
 //! A simple 3D scene with light shining over a cube sitting on a plane.
 
 use bevy::{
-    asset::io::file::FileAssetReader, prelude::*, transform::commands, window::PrimaryWindow,
+    prelude::*, window::PrimaryWindow,
 };
 use bevy_camera_extras::plugins::DefaultCameraPlugin;
 use bevy_egui::EguiContext;
 use bevy_rapier3d::{
-    dynamics::RigidBody,
     plugin::{NoUserData, RapierPhysicsPlugin},
     render::RapierDebugRenderPlugin,
 };
@@ -19,13 +18,11 @@ use bevy_ui_extras::systems::visualize_right_sidepanel_for;
 use moonshine_save::save::Save;
 
 use bevy_serialization_extras::prelude::{
-    friction::FrictionFlag,
-    link::{JointAxesMaskWrapper, JointFlag, LinkFlag, StructureFlag},
+    link::{JointFlag, StructureFlag},
     rigidbodies::RigidBodyFlag,
     *,
 };
 
-use bevy::{asset::io::AssetSource, prelude::*};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_raycast::DefaultRaycastingPlugin;
 use strum_macros::Display;
@@ -56,7 +53,7 @@ fn main() {
         .init_resource::<SelectedMotorAxis>()
         .init_resource::<PhysicsUtilitySelection>()
         // Ui
-        .add_systems(Update, selector_raycast)
+        //.add_systems(Update, selector_raycast)
         .add_systems(Update, physics_utilities_ui)
         .add_systems(Update, rapier_joint_info_ui)
         .add_systems(Update, motor_controller_ui)
@@ -149,20 +146,20 @@ pub fn make_robots_selectable(
 }
 
 pub fn control_robot(
-    mut rigid_body_flag: Query<(&mut RigidBodyFlag), (Without<JointFlag>, With<StructureFlag>)>,
-    keys: Res<Input<KeyCode>>,
+    mut rigid_body_flag: Query<&mut RigidBodyFlag, (Without<JointFlag>, With<StructureFlag>)>,
+    keys: Res<ButtonInput<KeyCode>>,
     mut primary_window: Query<&mut EguiContext, With<PrimaryWindow>>,
     mut wheels: Query<(&mut JointFlag, &Wheel)>,
 ) {
     let target_speed = 20.0;
 
-    let leftward_key = KeyCode::Left;
-    let rightward_key = KeyCode::Right;
-    let forward_key = KeyCode::Up;
-    let backward_key = KeyCode::Down;
+    let leftward_key = KeyCode::ArrowLeft;
+    let rightward_key = KeyCode::ArrowRight;
+    let forward_key = KeyCode::ArrowUp;
+    let backward_key = KeyCode::ArrowDown;
 
-    let freeze_key = KeyCode::P;
-    let unfreeze_key = KeyCode::O;
+    let freeze_key = KeyCode::KeyP;
+    let unfreeze_key = KeyCode::KeyO;
 
     for mut context in primary_window.iter_mut() {
         egui::Window::new("robot controls")
@@ -251,8 +248,12 @@ fn setup(
     // plane
     commands.spawn((
         PbrBundle {
-            mesh: meshes.add(shape::Plane::from_size(50.0).into()),
-            material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
+            mesh: meshes.add(
+                Plane3d::new(
+                    Vec3::new(0.0, 1.0, 0.0)
+                ).mesh().size(50.0, 50.0)
+            ),
+            material: materials.add(Color::rgb(0.3, 0.5, 0.3)),
             transform: Transform::from_xyz(0.0, -1.0, 0.0),
             ..default()
         },
