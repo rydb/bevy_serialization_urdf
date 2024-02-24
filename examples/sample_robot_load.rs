@@ -34,7 +34,9 @@ fn main() {
         })
         .insert_resource(UrdfHandles::default())
         // asset sources
-        .add_plugins(AssetSourcesUrdfPlugin)
+        .add_plugins(AssetSourcesUrdfPlugin {
+            assets_folder_local_path: "assets/".to_owned()
+        })
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             exit_condition: bevy::window::ExitCondition::OnPrimaryClosed,
             ..Default::default()
@@ -70,20 +72,6 @@ fn main() {
         .run();
 }
 
-// pub fn fixed_joint_friction_test(
-//     mut robots: Query<(Entity, &JointFlag), (With<LinkFlag>, Without<FrictionFlag>)>,
-//     mut commands: Commands,
-
-// ) {
-//     for (e, joint) in robots.iter() {
-//             commands.entity(e)
-//             .insert(FrictionFlag {
-//                 friction: 0.0,
-//                 ..default()
-//             });
-//     }
-// }
-
 #[derive(Component)]
 pub struct WasFrozen;
 
@@ -105,12 +93,6 @@ pub enum Wheel {
     Left,
     Right,
 }
-
-// #[derive(Component)]
-// pub struct WheelLeft;
-
-// #[derive(Component)]
-// pub struct WheelRight;
 
 /// find what is "probably" the left and right wheel, and give them a marker.
 pub fn bind_left_and_right_wheel(

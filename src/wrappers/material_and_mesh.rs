@@ -1,14 +1,15 @@
-use bevy::{prelude::default, render::color::Color};
+use bevy_render::color::Color;
 use bevy_serialization_extras::prelude::material::MaterialFlag;
 use bevy_serialization_extras::prelude::{
     mesh::{GeometryFile, GeometryFlag, MeshPrimitive},
     FileCheckPicker,
 };
+use bevy_utils::default;
 use derive_more::From;
+use glam::Vec3;
 use nalgebra::Vector3;
 use urdf_rs::Visual;
 
-use bevy::prelude::Vec3;
 
 #[derive(From, Clone)]
 pub struct VisualWrapper(Visual);
@@ -101,7 +102,7 @@ impl From<&VisualWrapper> for FileCheckPicker<GeometryFlag, GeometryFile> {
                 //let asset_source = AssetSource::Package(filename.clone());
 
                 //let asset_path = parse_urdf_source(asset_source);
-                println!("file name is {:#?}", filename);
+                //println!("file name is {:#?}", filename);
                 FileCheckPicker::PathComponent(
                     //AssetSource::Package(filename.clone());
                     GeometryFile {
@@ -114,12 +115,3 @@ impl From<&VisualWrapper> for FileCheckPicker<GeometryFlag, GeometryFile> {
         return flag_geometry;
     }
 }
-
-// fn parse_urdf_source(source: AssetSource) -> String {
-
-//     match source {
-//         AssetSource::Package(pkg) => pkg.strip_prefix("package://").unwrap().to_owned(),
-//         AssetSource::Placeholder(..) => panic!("Asset source not implemented for this asset source.")
-//     }
-
-// }

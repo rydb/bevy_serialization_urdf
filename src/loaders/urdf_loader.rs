@@ -1,13 +1,11 @@
 //! urdf loarder for robots. Should create a
 //! unique urdf resource for models to read from.
 
-use bevy::utils::thiserror;
-use bevy::{
-    asset::{io::Reader, AssetLoader, AsyncReadExt, LoadContext},
-    prelude::*,
-    reflect::TypePath,
-    utils::BoxedFuture,
-};
+use bevy_ecs::schedule::States;
+use bevy_utils::BoxedFuture;
+use bevy_asset::{io::Reader, prelude::*, AssetLoader, AsyncReadExt, LoadContext};
+use bevy_reflect::TypePath;
+use bevy_app::prelude::*;
 use thiserror::Error;
 use urdf_rs::Robot;
 
@@ -84,19 +82,6 @@ pub fn load_urdf<'a>(bytes: &'a [u8]) -> Result<Urdf, UrdfLoaderError> {
         Err(UrdfLoaderError::ParsingError)
     }
 }
-
-// async fn load_urdf<'a, 'b>(
-//     bytes: &'a [u8],
-// ) -> Result<Urdf, UrdfError> {
-//     if let Some(res) = std::str::from_utf8(bytes)
-//         .ok()
-//         .and_then(|utf| urdf_rs::read_from_string(utf).ok())
-//     {
-//         Ok(Urdf {robot: res})
-//     } else {
-//         return Err(UrdfError::ParsingError);
-//     }
-// }
 
 /// Weather this urdf is loaded or not.
 #[derive(Clone, Eq, PartialEq, Debug, Hash, Default, States)]

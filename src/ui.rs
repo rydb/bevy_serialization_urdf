@@ -1,8 +1,10 @@
-use bevy::{
-    prelude::*,
-    window::PrimaryWindow,
-};
+use bevy_asset::{Assets, Handle};
+// use bevy::{
+//     prelude::*,
+//     window::PrimaryWindow,
+// };
 use bevy_egui::EguiContext;
+use bevy_window::PrimaryWindow;
 //use bevy_rapier3d::dynamics::ImpulseJoint;
 use egui::{
     epaint::Shadow, text::LayoutJob, Color32, Frame, Margin,
@@ -11,6 +13,8 @@ use egui::{
 use strum::IntoEnumIterator;
 use strum_macros::{Display, EnumIter};
 
+
+use bevy_ecs::prelude::*;
 
 use crate::loaders::urdf_loader::Urdf;
 

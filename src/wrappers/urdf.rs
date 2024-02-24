@@ -1,8 +1,7 @@
 use std::collections::HashMap;
 
-// use bevy::core::Name;
-use bevy::{ecs::query::QueryData, prelude::*};
-//use bevy_rapier3d::geometry::Group;
+use bevy_core::Name;
+use bevy_render::view::VisibilityBundle;
 use bevy_serialization_extras::prelude::{
     colliders::ColliderFlag,
     continous_collision::CcdFlag,
@@ -17,14 +16,15 @@ use bevy_serialization_extras::prelude::{
     solvergroupfilter::{GroupWrapper, SolverGroupsFlag},
     *,
 };
+use bevy_transform::prelude::*;
+use bevy_utils::prelude::default;
+use glam::{EulerRot, Quat, Vec3};
 use nalgebra::{Matrix3, Vector3};
 use urdf_rs::{Joint, Link, Pose, Robot, Visual};
 
 use derive_more::From;
 
-//use crate::{queries::FileCheckPicker, resources::AssetSpawnRequest, loaders::urdf_loader::Urdf, traits::{LazyDeserialize, LoadError}, wrappers::link::LinkFlag};
-
-//use super::{material::MaterialFlag, link::{JointFlag, LinkQuery, JointAxesMaskWrapper, StructureFlag}, mass::MassFlag, colliders::ColliderFlag, rigidbodies::RigidBodyFlag, continous_collision::CcdFlag, solvergroupfilter::SolverGroupsFlag, collisiongroupfilter::CollisionGroupsFlag};
+use bevy_ecs::{prelude::*, query::QueryData};
 
 use crate::loaders::urdf_loader::Urdf;
 
@@ -48,10 +48,6 @@ impl LazyDeserialize for Urdf {
     }
 }
 
-// pub struct UrdfLinkage<'a, 'b> {
-//     link: &'a Link,
-//     joint: Option<&'b Joint>,
-// }
 
 impl<'a> FromStructure for Urdf {
     fn into_entities(commands: &mut Commands, value: Self, _: AssetSpawnRequest<Self>) {
@@ -143,7 +139,7 @@ impl<'a> FromStructure for Urdf {
                 .entry(joint.child.link.clone())
                 .or_insert(commands.spawn_empty().id());
 
-            log::info!("spawning joint on {:#?}", e);
+            //log::info!("spawning joint on {:#?}", e);
             let new_joint = JointFlag::from(&JointWrapper::from(joint.clone()));
 
             commands

@@ -10,15 +10,25 @@ description = "An addon for bevy_serialization_extras for loading urdfs"
 
 [dependencies]
 bevy_serialization_extras = {path = "../bevy_serialization_extras", version = "0.3.1"}
-bevy = "0.13"
+#bevy = "0.13"
 
+bevy_utils = "0.13"
+bevy_ecs = "0.13"
+bevy_reflect = "0.13"
+bevy_asset = "0.13"
+bevy_app = "0.13"
+bevy_render = "0.13"
+bevy_math = "0.13"
+bevy_core = "0.13"
+bevy_transform = "0.13"
+bevy_window = "0.13"
+
+thiserror = "1.0"
 glam = "0.25"
-moonshine-save = "0.3.4"
 bevy_egui = "0.25"
 egui = "0.26"
 egui_extras = "0.26"
 urdf-rs = "0.8.0"
-#multimap = "0.9.1"
 strum = "0.26"
 strum_macros = "0.26"
 bitflags = "2.4.1"
@@ -31,6 +41,7 @@ log = "0.4.2"
 
 [dev-dependencies]
 bevy = {version = "0.13", features = ["dynamic_linking"]}
+moonshine-save = "0.3.4"
 bevy_mod_raycast = "0.17"
 bevy_ui_extras = "0.5"
 bevy-inspector-egui = "0.23"
