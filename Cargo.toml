@@ -1,6 +1,6 @@
 [package]
 name = "bevy_serialization_urdf"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 repository = "https://github.com/rydb/bevy_serialization_extras"
 readme = "README.md"
@@ -9,8 +9,7 @@ description = "An addon for bevy_serialization_extras for loading urdfs"
 
 
 [dependencies]
-bevy_serialization_extras = {path = "../bevy_serialization_extras", version = "0.3.1"}
-#bevy = "0.13"
+bevy_serialization_extras = "0.4"
 
 bevy_utils = "0.13"
 bevy_ecs = "0.13"
@@ -36,8 +35,7 @@ nalgebra = "0.32"
 yaserde = "0.10"
 derive_more = "0.99"
 bitvec = "1.0"
-#bevy_obj = "0.12"
-log = "0.4.2"
+
 
 [dev-dependencies]
 bevy = {version = "0.13", features = ["dynamic_linking"]}
