@@ -49,6 +49,7 @@ pub enum UrdfLoaderError {
     ParsingError,
 }
 
+#[allow(refining_impl_trait)]
 impl AssetLoader for UrdfLoader {
     type Asset = Urdf;
     type Settings = ();

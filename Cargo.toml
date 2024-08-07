@@ -35,7 +35,7 @@ strum_macros = "0.26"
 bitflags = "2.4.1"
 nalgebra = "0.33"
 yaserde = "0.10"
-derive_more = "1.0"
+derive_more = {version = "1.0", features = ["from"]}
 bitvec = "1.0"
 
 
