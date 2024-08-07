@@ -1,7 +1,7 @@
 //! urdf loarder for robots. Should create a
 //! unique urdf resource for models to read from.
 
-use bevy_ecs::schedule::States;
+use bevy_state::prelude::States;
 use bevy_utils::BoxedFuture;
 use bevy_asset::{io::Reader, prelude::*, AssetLoader, AsyncReadExt, LoadContext};
 use bevy_reflect::TypePath;

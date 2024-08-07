@@ -1,4 +1,4 @@
-use bevy_render::color::Color;
+use bevy_color::{Color, LinearRgba};
 use bevy_serialization_extras::prelude::material::MaterialFlag;
 use bevy_serialization_extras::prelude::{
     mesh::{GeometryFile, GeometryFlag, MeshPrimitive},
@@ -10,7 +10,6 @@ use glam::Vec3;
 use nalgebra::Vector3;
 use urdf_rs::Visual;
 
-
 #[derive(From, Clone)]
 pub struct VisualWrapper(Visual);
 
@@ -20,12 +19,12 @@ impl From<&VisualWrapper> for MaterialFlag {
             if let Some(color) = &material.color {
                 let rgba = color.rgba.0;
                 Self {
-                    color: Color::Rgba {
+                    color: Color::LinearRgba(LinearRgba {
                         red: rgba[0] as f32,
                         green: rgba[1] as f32,
                         blue: rgba[2] as f32,
                         alpha: rgba[3] as f32,
-                    },
+                    }),
                 }
             } else {
                 Self::default()

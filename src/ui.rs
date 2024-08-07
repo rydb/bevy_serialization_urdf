@@ -85,7 +85,7 @@ pub fn urdf_widgets_ui(
 
                 match utility_selection.selected {
                     UtilityType::UrdfInfo => {
-                        if let Some(urdf) = urdfs.get(cached_urdf.urdf.clone()) {
+                        if let Some(urdf) = urdfs.get(&cached_urdf.urdf) {
                             let urdf_as_string = format!("{:#?}", urdf.robot);
 
                             if ui.button("Copy to clipboard").clicked() {

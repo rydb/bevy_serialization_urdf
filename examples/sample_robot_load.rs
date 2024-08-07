@@ -3,7 +3,8 @@
 use bevy::{
     prelude::*, window::PrimaryWindow,
 };
-use bevy_camera_extras::plugins::DefaultCameraPlugin;
+use bevy_camera_extras::CameraExtrasPlugin;
+//use bevy_camera_extras::plugins::DefaultCameraPlugin;
 use bevy_egui::EguiContext;
 use bevy_rapier3d::{
     plugin::{NoUserData, RapierPhysicsPlugin},
@@ -24,7 +25,7 @@ use bevy_serialization_extras::prelude::{
 };
 
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use bevy_mod_raycast::DefaultRaycastingPlugin;
+//use bevy_mod_raycast::DefaultRaycastingPlugin;
 use strum_macros::Display;
 
 fn main() {
@@ -37,10 +38,13 @@ fn main() {
         .add_plugins(AssetSourcesUrdfPlugin {
             assets_folder_local_path: "assets/".to_owned()
         })
-        .add_plugins(DefaultPlugins.set(WindowPlugin {
+        .add_plugins(DefaultPlugins
+            .set(WindowPlugin {
             exit_condition: bevy::window::ExitCondition::OnPrimaryClosed,
             ..Default::default()
-        }))
+            })
+            .set(bevy_mod_raycast::low_latency_window_plugin())
+        )
         // serialization plugins
         .add_plugins(SerializationPlugin)
         .add_plugins(PhysicsSerializationPlugin)
@@ -48,10 +52,9 @@ fn main() {
         // rapier physics plugins
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(RapierDebugRenderPlugin::default())
-        .add_plugins(DefaultRaycastingPlugin)
         // Quality of life for demo
         .add_plugins(WorldInspectorPlugin::new())
-        .add_plugins(DefaultCameraPlugin)
+        .add_plugins(CameraExtrasPlugin::default())
         .init_resource::<SelectedMotorAxis>()
         .init_resource::<PhysicsUtilitySelection>()
         // Ui
@@ -232,10 +235,10 @@ fn setup(
         PbrBundle {
             mesh: meshes.add(
                 Plane3d::new(
-                    Vec3::new(0.0, 1.0, 0.0)
-                ).mesh().size(50.0, 50.0)
+                    Vec3::new(0.0, 1.0, 0.0), Vec2::new(50.0, 50.0)
+                )
             ),
-            material: materials.add(Color::rgb(0.3, 0.5, 0.3)),
+            material: materials.add(Color::LinearRgba(LinearRgba::new(0.3, 0.5, 0.3, 1.0))),
             transform: Transform::from_xyz(0.0, -1.0, 0.0),
             ..default()
         },
