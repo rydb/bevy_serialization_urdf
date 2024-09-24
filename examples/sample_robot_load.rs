@@ -47,7 +47,7 @@ fn main() {
         )
         // serialization plugins
         .add_plugins(SerializationPlugin)
-        .add_plugins(PhysicsSerializationPlugin)
+        .add_plugins(SerializationPhysicsPlugin)
         .add_plugins(UrdfSerializationPlugin)
         // rapier physics plugins
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())

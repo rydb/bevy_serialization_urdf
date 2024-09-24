@@ -9,7 +9,7 @@ description = "An addon for bevy_serialization_extras for loading urdfs"
 
 
 [dependencies]
-bevy_serialization_extras = "0.5"
+bevy_serialization_extras = "0.6"
 
 bevy_utils = "0.14"
 bevy_ecs = "0.14"
