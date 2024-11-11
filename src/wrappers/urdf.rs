@@ -28,6 +28,7 @@ use bevy_ecs::{prelude::*, query::QueryData};
 
 use crate::loaders::urdf_loader::Urdf;
 
+use super::material_and_mesh::CollisionWrapper;
 use super::material_and_mesh::VisualWrapper;
 
 /// the collection of things that qualify as a "link", in the ROS 2 context.
@@ -47,7 +48,6 @@ impl LazyDeserialize for Urdf {
         Ok(Urdf { robot: urdf })
     }
 }
-
 
 impl<'a> FromStructure for Urdf {
     fn into_entities(commands: &mut Commands, value: Self, _: AssetSpawnRequest<Self>) {
@@ -110,28 +110,40 @@ impl<'a> FromStructure for Urdf {
                 };
                 commands
                     .entity(e)
-                    .insert(MaterialFlag::from(&visual_wrapper));
+                    .insert(MaterialFlag::from(&visual_wrapper))
+                    .insert(VisibilityBundle::default())
+                    .insert(TransformBundle {
+                        //local: temp_rotate_for_demo,
+                        ..default()
+                    })
+                    .insert(GeometryShiftMarked::default());
+            }
+            if let Some(collision) = link.collision.first() {
+                let collision_wrapper = CollisionWrapper::from(collision.clone());
+                match FileCheckPicker::from(&collision_wrapper) {
+                    FileCheckPicker::PureComponent(t) => commands.entity(e).insert(t),
+                    FileCheckPicker::PathComponent(u) => commands.entity(e).insert(u),
+                };
+                commands
+                    .entity(e)
+                    .insert(VisibilityBundle::default())
+                    .insert(TransformBundle {
+                        //local: temp_rotate_for_demo,
+                        ..default()
+                    })
+                    .insert(ColliderFlag::default())
+                    .insert(SolverGroupsFlag {
+                        memberships: GroupWrapper::GROUP_1,
+                        filters: GroupWrapper::GROUP_2,
+                    })
+                    .insert(GeometryShiftMarked::default())
+                    .insert(RigidBodyFlag::Dynamic)
+                    .insert(CcdFlag::default());
             }
             //let mut temp_rotate_for_demo = spawn_request.position;
             //FIXME: urdf meshes have their verticies re-oriented to match bevy's cordinate system, but their rotation isn't rotated back
             // to account for this, this will need a proper fix later.
             //temp_rotate_for_demo.rotate_x(-PI * 0.5);
-
-            commands
-                .entity(e)
-                .insert(VisibilityBundle::default())
-                .insert(TransformBundle {
-                    //local: temp_rotate_for_demo,
-                    ..default()
-                })
-                .insert(ColliderFlag::default())
-                .insert(SolverGroupsFlag {
-                    memberships: GroupWrapper::GROUP_1,
-                    filters: GroupWrapper::GROUP_2,
-                })
-                .insert(GeometryShiftMarked::default())
-                .insert(RigidBodyFlag::Dynamic)
-                .insert(CcdFlag::default());
         }
 
         for (_, joint) in structured_joint_map.iter() {
