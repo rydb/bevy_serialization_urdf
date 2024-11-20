@@ -42,6 +42,7 @@ pub struct UrdfSerializationPlugin;
 impl Plugin for UrdfSerializationPlugin {
     fn build(&self, app: &mut App) {
         app
+        .register_type::<CachedUrdf>()
         .add_plugins(UrdfLoaderPlugin)
         .insert_resource(CachedUrdf::default())
         .add_plugins(SerializeManyAsOneFor::<LinkQuery, Urdf>::default());
