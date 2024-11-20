@@ -14,9 +14,7 @@ use bevy_serialization_extras::prelude::SerializeManyAsOneFor;
 use bevy_app::prelude::*;
 
 use crate::{
-    loaders::urdf_loader::{Urdf, UrdfLoaderPlugin},
-    ui::{CachedUrdf, UtilitySelection},
-    wrappers::LinkQuery,
+    loaders::urdf_loader::{Urdf, UrdfLoaderPlugin}, resources::CachedUrdf, wrappers::LinkQuery
 };
 
 const PACKAGE: &str = "package";
@@ -45,7 +43,6 @@ impl Plugin for UrdfSerializationPlugin {
     fn build(&self, app: &mut App) {
         app
         .add_plugins(UrdfLoaderPlugin)
-        .insert_resource(UtilitySelection::default())
         .insert_resource(CachedUrdf::default())
         .add_plugins(SerializeManyAsOneFor::<LinkQuery, Urdf>::default());
     }

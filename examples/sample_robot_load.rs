@@ -3,8 +3,7 @@
 use bevy::{
     prelude::*, window::PrimaryWindow,
 };
-use bevy_camera_extras::CameraExtrasPlugin;
-//use bevy_camera_extras::plugins::DefaultCameraPlugin;
+use bevy_camera_extras::{CameraController, CameraExtrasPlugin, CameraRestrained};
 use bevy_egui::EguiContext;
 use bevy_rapier3d::{
     plugin::{NoUserData, RapierPhysicsPlugin},
@@ -12,10 +11,10 @@ use bevy_rapier3d::{
 };
 use bevy_serialization_urdf::{
     loaders::urdf_loader::Urdf,
-    plugin::{AssetSourcesUrdfPlugin, UrdfSerializationPlugin},
-    ui::{urdf_widgets_ui, CachedUrdf, DEBUG_FRAME_STYLE},
+    plugin::{AssetSourcesUrdfPlugin, UrdfSerializationPlugin}, resources::CachedUrdf,
 };
-use bevy_ui_extras::systems::visualize_right_sidepanel_for;
+use bevy_ui_extras::{visualize_components_for, UiExtrasDebug};
+use egui::{text::LayoutJob, Color32, Frame, Margin, Rounding, ScrollArea, Shadow, Stroke, TextFormat};
 use moonshine_save::save::Save;
 
 use bevy_serialization_extras::prelude::{
@@ -24,9 +23,9 @@ use bevy_serialization_extras::prelude::{
     *,
 };
 
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use strum::IntoEnumIterator;
 //use bevy_mod_raycast::DefaultRaycastingPlugin;
-use strum_macros::Display;
+use strum_macros::{Display, EnumIter};
 
 fn main() {
     App::new()
@@ -34,6 +33,7 @@ fn main() {
             name: "blue".to_owned(),
         })
         .insert_resource(UrdfHandles::default())
+        .insert_resource(UtilitySelection::default())
         // asset sources
         .add_plugins(AssetSourcesUrdfPlugin {
             assets_folder_local_path: "assets/".to_owned()
@@ -55,23 +55,27 @@ fn main() {
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(RapierDebugRenderPlugin::default())
         // Quality of life for demo
-        .add_plugins(WorldInspectorPlugin::new())
-        .add_plugins(CameraExtrasPlugin::default())
-        .init_resource::<SelectedMotorAxis>()
-        .init_resource::<PhysicsUtilitySelection>()
+        .add_plugins(UiExtrasDebug::default())
+        .add_plugins(CameraExtrasPlugin {
+            cursor_grabbed_by_default: true,
+            ..default()
+        })
+        // .add_plugins(CameraExtrasPlugin::default())
+        // .init_resource::<SelectedMotorAxis>()
+        // .init_resource::<PhysicsUtilitySelection>()
         // Ui
         //.add_systems(Update, selector_raycast)
-        .add_systems(Update, physics_utilities_ui)
-        .add_systems(Update, rapier_joint_info_ui)
-        .add_systems(Update, motor_controller_ui)
+        // .add_systems(Update, physics_utilities_ui)
+        // .add_systems(Update, rapier_joint_info_ui)
+        // .add_systems(Update, motor_controller_ui)
         .add_systems(Update, urdf_widgets_ui)
-        .add_systems(Update, visualize_right_sidepanel_for::<Name>)
+        .add_systems(Update, visualize_components_for::<Name>(bevy_ui_extras::Display::Side(bevy_ui_extras::Side::Right)))
         // Demo systems
         .register_type::<Wheel>()
         .add_systems(Startup, setup)
         .add_systems(Startup, queue_urdf_load_requests)
         .add_systems(Update, control_robot)
-        .add_systems(Update, make_robots_selectable)
+        // .add_systems(Update, make_robots_selectable)
         .add_systems(Update, bind_left_and_right_wheel)
         .add_systems(Update, freeze_spawned_robots)
         .run();
@@ -123,14 +127,14 @@ pub struct UrdfHandles {
     pub handle_vec: Vec<Handle<Urdf>>,
 }
 
-pub fn make_robots_selectable(
-    robots: Query<(Entity, &StructureFlag), Without<Selectable>>,
-    mut commands: Commands,
-) {
-    for (e, ..) in robots.iter() {
-        commands.entity(e).insert(Selectable);
-    }
-}
+// pub fn make_robots_selectable(
+//     robots: Query<(Entity, &StructureFlag), Without<Selectable>>,
+//     mut commands: Commands,
+// ) {
+//     for (e, ..) in robots.iter() {
+//         commands.entity(e).insert(Selectable);
+//     }
+// }
 
 pub fn control_robot(
     mut rigid_body_flag: Query<&mut RigidBodyFlag, (Without<JointFlag>, With<StructureFlag>)>,
@@ -267,10 +271,99 @@ fn setup(
             ..default()
         },
         Save,
+        CameraController {
+            restrained: CameraRestrained(false),
+            camera_mode: bevy_camera_extras::CameraMode::Free,
+        }
     ));
 }
 
 #[derive(Resource, Default)]
 pub struct SetSaveFile {
     pub name: String,
+}
+
+
+pub const DEBUG_FRAME_STYLE: Frame = Frame {
+    inner_margin: Margin {
+        left: 0.0,
+        right: 0.0,
+        top: 0.0,
+        bottom: 0.0,
+    },
+    outer_margin: Margin {
+        left: 0.0,
+        right: 0.0,
+        top: 0.0,
+        bottom: 0.0,
+    },
+    rounding: Rounding {
+        nw: 0.0,
+        ne: 0.0,
+        sw: 0.0,
+        se: 0.0,
+    },
+    shadow: Shadow::NONE,
+    fill: egui::Color32::from_rgba_premultiplied(15, 15, 15, 128),
+    stroke: Stroke {
+        width: 1.0,
+        color: Color32::BLACK,
+    },
+};
+
+#[derive(Default, EnumIter, Display)]
+pub enum UtilityType {
+    #[default]
+    UrdfInfo,
+}
+#[derive(Resource, Default)]
+pub struct UtilitySelection {
+    pub selected: UtilityType,
+}
+
+
+pub fn urdf_widgets_ui(
+    mut primary_window: Query<&mut EguiContext, With<PrimaryWindow>>,
+    mut utility_selection: ResMut<UtilitySelection>,
+    //mut asset_server: Res<AssetServer>,
+    cached_urdf: Res<CachedUrdf>,
+    urdfs: Res<Assets<Urdf>>,
+
+    //mut joint_flags: Query<&mut JointFlag>,
+    //rapier_joints: Query<&ImpulseJoint>,
+) {
+    for mut context in primary_window.iter_mut() {
+        egui::Window::new("debug widget window")
+            //.title_bar(false)
+            .frame(DEBUG_FRAME_STYLE)
+            .show(context.get_mut(), |ui| {
+                // lay out the ui widget selection menu
+                ui.horizontal(|ui| {
+                    for utility in UtilityType::iter() {
+                        if ui.button(utility.to_string()).clicked() {
+                            utility_selection.selected = utility;
+                        }
+                    }
+                });
+
+                match utility_selection.selected {
+                    UtilityType::UrdfInfo => {
+                        if let Some(urdf) = urdfs.get(&cached_urdf.urdf) {
+                            let urdf_as_string = format!("{:#?}", urdf.robot);
+
+                            if ui.button("Copy to clipboard").clicked() {
+                                ui.output_mut(|o| o.copied_text = urdf_as_string.to_string());
+                            }
+                            ScrollArea::vertical().show(ui, |ui| {
+                                let job = LayoutJob::single_section(
+                                    urdf_as_string,
+                                    TextFormat::default(),
+                                );
+                                ui.label(job);
+                            });
+                        }
+                    }
+                }
+            });
+    }
 }
