@@ -2,7 +2,7 @@
 name = "bevy_serialization_urdf"
 version = "0.5.0"
 edition = "2021"
-repository = "https://github.com/rydb/bevy_serialization_extras"
+repository = "https://github.com/rydb/bevy_serialization_urdf"
 readme = "README.md"
 license = "MIT"
 description = "An addon for bevy_serialization_extras for loading urdfs"
