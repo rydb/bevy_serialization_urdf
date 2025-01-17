@@ -1,4 +1,5 @@
 (!This repo has been moved to `bevy_serialization_extras` under `bevy_serialization_assemble`!)
+
 https://github.com/rydb/bevy_serialization_extras
 
 # bevy_serialization_urdf
